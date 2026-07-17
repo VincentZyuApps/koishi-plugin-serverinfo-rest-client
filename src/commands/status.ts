@@ -1,28 +1,24 @@
 import { Context, h } from 'koishi'
 import { Config } from '../config'
+import type { ApiClient } from '../api/client'
+import type { StatusResponse } from '../api/types'
 import {
-  ApiClient,
   resolveOutputModes,
   getTypstRenderer,
   buildTypstTheme,
   escapeTypstText,
+  createTypstFailureOutput,
 } from '../index'
 import path from 'node:path'
 import fs from 'node:fs'
 
-const pkg = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf-8')
-)
+const packageJsonPath = [
+  path.resolve(__dirname, '../package.json'),
+  path.resolve(__dirname, '../../package.json'),
+].find(fs.existsSync)
+if (!packageJsonPath) throw new Error('找不到插件 package.json')
+const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
 const CLIENT_VERSION = pkg.version
-
-interface StatusResponse {
-  status: string
-  plugin: string
-  version: string
-  playerCount: number
-  bdsVersion: string
-  protocolVersion: number
-}
 
 function formatTextOutput(data: StatusResponse, label: string): string {
   const statusEmoji = data.status === 'online' ? '🟢' : '🔴'
@@ -142,7 +138,8 @@ export function registerStatusCommand(
               results.push(h.image(pngBuffer, 'image/png'))
             } catch (err) {
               logger.warn(`Typst 渲染失败: ${err}`)
-              results.push(h.text(`[Typst 渲染失败: ${err.message}]`))
+              const fallback = createTypstFailureOutput(err, cfg, modes, formatTextOutput(data, label))
+              if (fallback) results.push(fallback)
             }
           }
         }

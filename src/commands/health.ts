@@ -1,19 +1,15 @@
 import { Context, h } from 'koishi'
 import { Config } from '../config'
+import type { ApiClient } from '../api/client'
+import type { HealthResponse } from '../api/types'
 import {
-  ApiClient,
   resolveOutputModes,
   formatTimestamp,
   getTypstRenderer,
   buildTypstTheme,
   escapeTypstText,
+  createTypstFailureOutput,
 } from '../index'
-
-interface HealthResponse {
-  status: string
-  timestamp: number
-  uptime: number
-}
 
 function formatTextOutput(data: HealthResponse, label: string): string {
   return `${label} ❤️ 健康检查
@@ -137,7 +133,8 @@ export function registerHealthCommand(
               results.push(h.image(pngBuffer, 'image/png'))
             } catch (err) {
               logger.warn(`Typst 渲染失败: ${err}`)
-              results.push(h.text(`[Typst 渲染失败: ${err.message}]`))
+              const fallback = createTypstFailureOutput(err, cfg, modes, formatTextOutput(data, label))
+              if (fallback) results.push(fallback)
             }
           }
         }

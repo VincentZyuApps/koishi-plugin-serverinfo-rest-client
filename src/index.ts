@@ -1,7 +1,9 @@
 import { Context, h } from 'koishi'
-import { } from 'koishi-plugin-to-image-service'
-import { } from 'koishi-plugin-w-node'
+import type {} from '@koishijs/plugin-server'
+import { Resvg } from '@resvg/resvg-js'
 import { Config, OutputMode } from './config'
+import { createApiClient } from './api/client'
+import { checkAndDownloadFonts, getTypstFontPaths } from './font'
 import { registerHealthCommand } from './commands/health'
 import { registerStatusCommand } from './commands/status'
 import { registerServerCommand } from './commands/server'
@@ -9,7 +11,12 @@ import { registerPlayersCommand } from './commands/players'
 import { registerPlayersCountCommand } from './commands/players-count'
 import { registerPlayersNamesCommand } from './commands/players-names'
 import { registerPlayerCommand } from './commands/player'
-import path from 'node:path'
+import { registerOnlineCommand } from './commands/online'
+import { registerHistoryCommand } from './commands/history'
+import { registerPlayerDataCommand } from './commands/player-data'
+import { registerExecuteCommand } from './commands/execute-command'
+import { registerWhitelistCommands } from './commands/whitelist'
+import { applyQQImageServer } from './qq'
 import fs from 'node:fs'
 
 export const name = 'serverinfo-rest-client'
@@ -18,21 +25,21 @@ export const reusable = true; // 声明此插件可重用
 
 export const inject = {
   required: [],
-  optional: ['toImageService', 'node'],
+  optional: ['server'],
 }
 
-export { Config }
+export { Config, createApiClient }
+export type { ApiClient } from './api/client'
+export { generateOnlineStatusTypst } from './commands/online'
 
 export const usage = `
 ## 🎮 Minecraft BDS 服务器信息查询插件
 
-对接 serverinfo-rest-js 服务端，查询 Minecraft BDS 服务器信息。
+对接 LeviLamina serverinfo-rest 服务端，查询 Minecraft BDS 服务器信息。
 
 ### ⚠️ 前置依赖
 
-可选依赖（用于 Typst 图片渲染）：
-
-- **to-image-service + w-node** - Typst 图片渲染
+Typst 图片由插件内置编译器和 Resvg 在本地渲染，无需额外渲染服务。
 
 ### 🎯 功能特性
 
@@ -61,75 +68,9 @@ export const usage = `
 - \`--mode image\` - Typst 图片输出
 `
 
-// ==================== API 客户端 ====================
-
-export interface ApiClient {
-  get<T>(endpoint: string, params?: Record<string, string>): Promise<T>
-  getBaseUrl(): string
-  getApiBase(): string
-}
-
-export function createApiClient(cfg: Config, logger: any): ApiClient {
-  const baseUrl = `http://${cfg.serverIp}:${cfg.serverPort}`
-  const apiBase = `${baseUrl}${cfg.apiPrefix}`
-
-  function buildUrl(endpoint: string, params?: Record<string, string>): string {
-    const allParams: Record<string, string> = { ...params }
-    if (cfg.token) {
-      allParams.token = cfg.token
-    }
-    const queryString = Object.entries(allParams)
-      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-      .join('&')
-    return queryString ? `${endpoint}?${queryString}` : endpoint
-  }
-
-  async function get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
-    const url = buildUrl(`${apiBase}${endpoint}`, params)
-    logger.debug(`[API] GET ${url}`)
-
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), cfg.timeout)
-
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'koishi-plugin-serverinfo-rest-client/1.0',
-          'Accept': 'application/json',
-        },
-        signal: controller.signal,
-      })
-
-      clearTimeout(timeoutId)
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      logger.debug(`[API] Response:`, JSON.stringify(data).substring(0, 200))
-      return data as T
-    } catch (error) {
-      clearTimeout(timeoutId)
-      if (error.name === 'AbortError') {
-        throw new Error(`请求超时 (${cfg.timeout}ms)`)
-      }
-      throw error
-    }
-  }
-
-  return {
-    get,
-    getBaseUrl: () => baseUrl,
-    getApiBase: () => apiBase,
-  }
-}
-
 // ==================== Typst 渲染器 ====================
 
 import type { NodeCompiler, NodeAddFontBlobs } from '@myriaddreamin/typst-ts-node-compiler'
-import type { Font, FontFormat } from 'koishi-plugin-to-image-service'
 
 export interface TypstTheme {
   fontFamily: string
@@ -189,40 +130,32 @@ export function escapeTypstText(str: string): string {
 export class TypstRenderer {
   private typst: typeof import('@myriaddreamin/typst-ts-node-compiler') | null = null
   private compiler: NodeCompiler | null = null
-  private lastFonts: Font[] = []
-  private readonly fontFormats: FontFormat[] = ['ttf', 'otf']
   private readonly typstModuleName = '@myriaddreamin/typst-ts-node-compiler'
-  private readonly workspaceDir = path.resolve(__dirname, '..')
+  private readonly workspaceDir: string
+  private initPromise: Promise<void> | null = null
   private initialized = false
 
   constructor(
     private ctx: Context,
     private logger: any,
     private cfg: Config,
-  ) {}
+  ) {
+    this.workspaceDir = ctx.baseDir
+  }
 
   async init(): Promise<void> {
-    if (!this.ctx.node) {
-      throw new Error('w-node 服务未启用，无法使用 Typst 渲染')
+    if (this.initialized) return
+    if (!this.initPromise) {
+      this.initPromise = import(this.typstModuleName).then((typst) => {
+        this.typst = typst
+        this.initialized = true
+        this.logger.info('Typst 模块加载成功')
+      }).catch((error) => {
+        this.initPromise = null
+        throw error
+      })
     }
-    if (!this.ctx.toImageService) {
-      throw new Error('to-image-service 服务未启用，无法使用 Typst 渲染')
-    }
-
-    const maxWaitMs = 10000
-    const intervalMs = 200
-    let waited = 0
-    while (!this.ctx.toImageService?.svgToImage?.resvg && waited < maxWaitMs) {
-      await new Promise(resolve => setTimeout(resolve, intervalMs))
-      waited += intervalMs
-    }
-    if (!this.ctx.toImageService?.svgToImage?.resvg) {
-      throw new Error(`to-image-service 的 svgToImage.resvg 在 ${maxWaitMs}ms 内未就绪`)
-    }
-
-    this.typst = await this.ctx.node.safeImport(this.typstModuleName)
-    this.logger.info('Typst 模块加载成功')
-    this.initialized = true
+    await this.initPromise
   }
 
   isReady(): boolean {
@@ -234,35 +167,19 @@ export class TypstRenderer {
       throw new Error('Typst 模块未初始化，请先调用 init()')
     }
 
-    const fonts = this.ctx.toImageService.fontManagement.getFonts(this.fontFormats)
-
-    const customFontPath = this.cfg.typstFontPath
-    if (customFontPath && fs.existsSync(customFontPath)) {
-      try {
-        const customFontBuffer = fs.readFileSync(customFontPath)
-        fonts.push({
-          name: path.basename(customFontPath),
-          filePath: customFontPath,
-          data: customFontBuffer,
-          format: customFontPath.endsWith('.otf') ? 'otf' : 'ttf'
-        })
-      } catch (err) {
-        this.logger.warn(`加载自定义字体失败: ${customFontPath}, 错误: ${err}`)
+    if (!this.compiler) {
+      const fontArgs: NodeAddFontBlobs[] = []
+      for (const fontPath of getTypstFontPaths(this.ctx, this.cfg)) {
+        try {
+          fontArgs.push({ fontBlobs: [fs.readFileSync(fontPath)] })
+        } catch (error) {
+          this.logger.warn(`加载字体失败: ${fontPath}, ${error}`)
+        }
       }
-    }
-
-    if (
-      !this.compiler ||
-      fonts.length !== this.lastFonts.length ||
-      (fonts.length > 0 && fonts.some(f => !this.lastFonts.some(lf => lf.data === f.data)))
-    ) {
       this.compiler = this.typst.NodeCompiler.create({
-        fontArgs: fonts.map(font => ({
-          fontBlobs: [font.data],
-        }) as NodeAddFontBlobs),
+        fontArgs,
         workspace: this.workspaceDir,
       })
-      this.lastFonts = fonts
     }
 
     return this.compiler
@@ -292,30 +209,29 @@ export class TypstRenderer {
 
   async toPng(content: string, scale: number = 2.33): Promise<Buffer> {
     const svg = this.toSvg(content)
-    
-    if (!this.ctx.toImageService?.svgToImage?.resvg) {
-      throw new Error('toImageService.svgToImage.resvg 尚未就绪')
-    }
-    
-    const result = await this.ctx.toImageService.svgToImage.resvg(svg, {
-      options: {
-        fitTo: { mode: 'zoom', value: scale },
-      },
+    const resvg = new Resvg(svg, {
+      fitTo: { mode: 'zoom', value: scale },
+      font: { loadSystemFonts: true },
     })
-    return Buffer.from(result)
+    return resvg.render().asPng()
   }
 }
 
-let sharedRenderer: TypstRenderer | null = null
+const renderers = new WeakMap<Context, TypstRenderer>()
 
 export async function getTypstRenderer(ctx: Context, cfg: Config, logger: any): Promise<TypstRenderer> {
-  if (!sharedRenderer) {
-    sharedRenderer = new TypstRenderer(ctx, logger, cfg)
+  let renderer = renderers.get(ctx)
+  if (!renderer) {
+    renderer = new TypstRenderer(ctx, logger, cfg)
+    renderers.set(ctx, renderer)
+    ctx.on('dispose', () => {
+      renderers.delete(ctx)
+    })
   }
-  if (!sharedRenderer.isReady()) {
-    await sharedRenderer.init()
+  if (!renderer.isReady()) {
+    await renderer.init()
   }
-  return sharedRenderer
+  return renderer
 }
 
 // ==================== 工具函数 ====================
@@ -326,6 +242,19 @@ export function resolveOutputModes(modeArg: string | undefined, cfg: Config): Ou
     if (modeArg === 'image') return ['typst-image']
   }
   return cfg.defaultOutputModes
+}
+
+export function createTypstFailureOutput(
+  error: unknown,
+  cfg: Config,
+  modes: OutputMode[],
+  textOutput: string,
+): ReturnType<typeof h.text> | null {
+  if (cfg.typstFallbackToText) {
+    return modes.includes('text') ? null : h.text(textOutput)
+  }
+  const message = error instanceof Error ? error.message : String(error)
+  return h.text(`[Typst 渲染失败: ${message}]`)
 }
 
 export function formatTimestamp(ts: number): string {
@@ -341,9 +270,13 @@ export function formatTimestamp(ts: number): string {
 
 // ==================== 插件入口 ====================
 
-export function apply(ctx: Context, cfg: Config) {
+export async function apply(ctx: Context, cfg: Config) {
   const logger = ctx.logger(name)
+  await checkAndDownloadFonts(ctx, cfg).catch((error) => {
+    logger.warn(`字体下载失败，Typst 图片可能无法正确渲染: ${error}`)
+  })
   const apiClient = createApiClient(cfg, logger)
+  applyQQImageServer(ctx)
 
   logger.info(`服务器地址: ${apiClient.getBaseUrl()}`)
   logger.info(`API 地址: ${apiClient.getApiBase()}`)
@@ -358,6 +291,14 @@ export function apply(ctx: Context, cfg: Config) {
 
 使用以下子指令查询服务器信息：
 • ${prefix}.health - 健康检查
+• ${prefix}.查在线 - 查询服务器在线状态
+• ${prefix}.历史记录 [页码] - 查询历史玩家
+• ${prefix}.查询数据「玩家名」- 查询历史游玩与统计数据
+• ${prefix}.绑定白名单「玩家名」- 绑定当前账号白名单
+• ${prefix}.解绑 - 解除当前账号普通绑定（不撤销管理员直接授权）
+• ${prefix}.添加白名单「玩家名」- 管理员直接添加白名单
+• ${prefix}.移除白名单「玩家名」- 管理员移除白名单
+• ${prefix}.执行命令「命令」- 管理员执行 BDS 命令
 • ${prefix}.status - 服务器状态
 • ${prefix}.server - 服务器详细信息
 • ${prefix}.players - 玩家列表
@@ -370,6 +311,11 @@ export function apply(ctx: Context, cfg: Config) {
 
   // 注册子指令
   registerHealthCommand(ctx, cfg, apiClient, logger, prefix, label)
+  registerOnlineCommand(ctx, cfg, apiClient, logger, prefix)
+  registerHistoryCommand(ctx, cfg, apiClient, logger, prefix)
+  registerPlayerDataCommand(ctx, cfg, apiClient, logger, prefix)
+  registerExecuteCommand(ctx, cfg, apiClient, logger, prefix)
+  registerWhitelistCommands(ctx, cfg, apiClient, logger, prefix)
   registerStatusCommand(ctx, cfg, apiClient, logger, prefix, label)
   registerServerCommand(ctx, cfg, apiClient, logger, prefix, label)
   registerPlayersCommand(ctx, cfg, apiClient, logger, prefix, label)

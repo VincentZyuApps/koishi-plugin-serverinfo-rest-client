@@ -1,17 +1,14 @@
 import { Context, h } from 'koishi'
 import { Config } from '../config'
+import type { ApiClient } from '../api/client'
+import type { PlayersNamesResponse } from '../api/types'
 import {
-  ApiClient,
   resolveOutputModes,
   getTypstRenderer,
   buildTypstTheme,
   escapeTypstText,
+  createTypstFailureOutput,
 } from '../index'
-
-interface PlayersNamesResponse {
-  names: string[]
-  count: number
-}
 
 function formatTextOutput(data: PlayersNamesResponse, label: string): string {
   if (data.count === 0) {
@@ -170,7 +167,8 @@ export function registerPlayersNamesCommand(
               results.push(h.image(pngBuffer, 'image/png'))
             } catch (err) {
               logger.warn(`Typst 渲染失败: ${err}`)
-              results.push(h.text(`[Typst 渲染失败: ${err.message}]`))
+              const fallback = createTypstFailureOutput(err, cfg, modes, formatTextOutput(data, label))
+              if (fallback) results.push(fallback)
             }
           }
         }

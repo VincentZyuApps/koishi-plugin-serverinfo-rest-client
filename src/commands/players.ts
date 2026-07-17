@@ -1,272 +1,61 @@
 import { Context, h } from 'koishi'
 import { Config } from '../config'
+import type { ApiClient } from '../api/client'
+import type { PlayersResponse } from '../api/types'
 import {
-  ApiClient,
   resolveOutputModes,
   getTypstRenderer,
   buildTypstTheme,
   escapeTypstText,
+  createTypstFailureOutput,
 } from '../index'
 
-interface PlayerInfo {
-  name: string
-  xuid: string
-  uuid: string
-  permLevel: number
-  gameMode: number
-  health: number
-  maxHealth: number
-  pos: {
-    x: number
-    y: number
-    z: number
-    dimId: number
-  }
-  blockPos: {
-    x: number
-    y: number
-    z: number
-  }
-  isOP: boolean
-  isFlying: boolean
-  isSneaking: boolean
-  speed: number
-  direction: object
-  langCode: string
+function formatTextOutput(data: PlayersResponse, label: string): string {
+  if (!data.players.length) return `${label} 👥 玩家列表\n\n当前没有玩家在线`
+  return `${label} 👥 玩家列表 (${data.count} 人在线)\n\n${data.players.map((player, index) => `${index + 1}. ${player.name}`).join('\n')}`
 }
 
-interface PlayersResponse {
-  players: PlayerInfo[]
-  count: number
-}
-
-const DIMENSION_MAP: Record<number, string> = {
-  0: '🌍 主世界',
-  1: '🔥 下界',
-  2: '🌌 末地',
-}
-
-const GAMEMODE_MAP: Record<number, string> = {
-  0: '🗡️ 生存',
-  1: '🎨 创造',
-  2: '🎯 冒险',
-  3: '👁️ 旁观',
-}
-
-function getDimension(dimId: number): string {
-  return DIMENSION_MAP[dimId] || `❓ 未知 (${dimId})`
-}
-
-function getGameMode(mode: number): string {
-  return GAMEMODE_MAP[mode] || `❓ 未知 (${mode})`
-}
-
-function formatPlayerText(player: PlayerInfo, hideCoordinates: boolean): string {
-  const flags: string[] = []
-  if (player.isOP) flags.push('👑 OP')
-  if (player.isFlying) flags.push('🦅 飞行中')
-  if (player.isSneaking) flags.push('🐍 潜行中')
-
-  const positionLine = hideCoordinates
-    ? ''
-    : `    • 位置: ${player.pos.x.toFixed(1)}, ${player.pos.y.toFixed(1)}, ${player.pos.z.toFixed(1)}\n`
-
-  return `  👤 ${player.name}
-    • 模式: ${getGameMode(player.gameMode)}
-    • 生命: ${player.health}/${player.maxHealth} ❤️
-${positionLine}    • 维度: ${getDimension(player.pos.dimId)}
-    ${flags.length > 0 ? `• 状态: ${flags.join(' | ')}` : ''}`
-}
-
-function formatTextOutput(data: PlayersResponse, hideCoordinates: boolean, label: string): string {
-  if (data.count === 0) {
-    return `${label} 👥 玩家列表
-
-当前没有玩家在线`
-  }
-
-  const playerTexts = data.players.map(p => formatPlayerText(p, hideCoordinates)).join('\n\n')
-  return `${label} 👥 玩家列表 (${data.count} 人在线)
-
-${playerTexts}`
-}
-
-function generatePlayerTypstBlock(player: PlayerInfo, theme: ReturnType<typeof buildTypstTheme>, hideCoordinates: boolean): string {
-  const flags: string[] = []
-  if (player.isOP) flags.push('👑 OP')
-  if (player.isFlying) flags.push('🦅 飞行')
-  if (player.isSneaking) flags.push('🐍 潜行')
-
-  const coordinateLine = hideCoordinates
-    ? ''
-    : `
-  #v(4pt)
-  #text(size: 9pt)[📍 ${player.pos.x.toFixed(1)}, ${player.pos.y.toFixed(1)}, ${player.pos.z.toFixed(1)}]`
-
-  return `
-#block(
-  fill: ${theme.panelFill},
-  stroke: 1pt + ${theme.panelStroke},
-  radius: 4pt,
-  inset: 10pt,
-  width: 100%
-)[
-  #text(size: 12pt, weight: "bold", fill: ${theme.sectionTitle})[👤 ${escapeTypstText(player.name)}]
-  ${flags.length > 0 ? `#h(8pt) #text(size: 9pt)[${flags.join(' ')}]` : ''}
-  #v(6pt)
-  #grid(
-    columns: (1fr, 1fr),
-    gutter: 6pt,
-    [🎮 ${escapeTypstText(getGameMode(player.gameMode))}],
-    [❤️ ${player.health}/${player.maxHealth}],
-    [${escapeTypstText(getDimension(player.pos.dimId))}],
-    [🏃 速度: ${player.speed.toFixed(1)}],
-  )${coordinateLine}
+function generateTypstCode(data: PlayersResponse, theme: ReturnType<typeof buildTypstTheme>, label: string): string {
+  const rows = data.players.length
+    ? data.players.map((player, index) => `[${index + 1}.], [${escapeTypstText(player.name)}],`).join('\n')
+    : `[--], [当前没有玩家在线],`
+  return `#set page(width: 390pt, height: auto, margin: 14pt, fill: ${theme.pageBg})
+#set text(font: ("${theme.fontFamily}", "Noto Sans CJK SC", "Microsoft YaHei"), size: 11pt, fill: ${theme.textColor}, lang: "zh")
+#block(fill: ${theme.headerFill}, stroke: 2pt + ${theme.headerStroke}, radius: 6pt, inset: 10pt, width: 100%)[
+  #align(center)[#text(size: 16pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(label)} 在线玩家 ${data.count}]]
 ]
-`
-}
-
-function generateTypstCode(data: PlayersResponse, theme: ReturnType<typeof buildTypstTheme>, hideCoordinates: boolean, label: string): string {
-  const timestamp = new Date().toLocaleString('zh-CN')
-
-  if (data.count === 0) {
-    return `#set page(
-  width: 400pt,
-  height: auto,
-  margin: (x: 14pt, y: 14pt),
-  fill: ${theme.pageBg}
-)
-
-#set text(
-  font: ("${theme.fontFamily}", "Noto Sans CJK SC", "Microsoft YaHei"),
-  size: 11pt,
-  fill: ${theme.textColor},
-  lang: "zh"
-)
-
-#align(center)[
-  #block(
-    fill: ${theme.headerFill},
-    stroke: 2pt + ${theme.headerStroke},
-    radius: 6pt,
-    inset: 10pt,
-    width: 100%
-  )[
-    #text(size: 16pt, weight: "bold", fill: ${theme.headerText})[
-      ${escapeTypstText(label)} 👥 玩家列表
-    ]
-  ]
-]
-
 #v(8pt)
-
-#block(
-  fill: ${theme.panelFill},
-  stroke: 1pt + ${theme.panelStroke},
-  radius: 4pt,
-  inset: 12pt,
-  width: 100%
-)[
-  #align(center)[
-    #text(size: 12pt)[当前没有玩家在线]
-  ]
-]
-
-#v(8pt)
-
-#align(center)[
-  #text(size: 8pt, fill: ${theme.statsText})[
-    Generated by serverinfo-rest-client · ${escapeTypstText(timestamp)}
-  ]
-]
-`
-  }
-
-  const playerBlocks = data.players.map(p => generatePlayerTypstBlock(p, theme, hideCoordinates)).join('\n#v(6pt)\n')
-
-  return `#set page(
-  width: 450pt,
-  height: auto,
-  margin: (x: 14pt, y: 14pt),
-  fill: ${theme.pageBg}
-)
-
-#set text(
-  font: ("${theme.fontFamily}", "Noto Sans CJK SC", "Microsoft YaHei"),
-  size: 11pt,
-  fill: ${theme.textColor},
-  lang: "zh"
-)
-
-#align(center)[
-  #block(
-    fill: ${theme.headerFill},
-    stroke: 2pt + ${theme.headerStroke},
-    radius: 6pt,
-    inset: 10pt,
-    width: 100%
-  )[
-    #text(size: 16pt, weight: "bold", fill: ${theme.headerText})[
-      ${escapeTypstText(label)} 👥 玩家列表 (${data.count} 人在线)
-    ]
-  ]
-]
-
-#v(8pt)
-
-${playerBlocks}
-
-#v(8pt)
-
-#align(center)[
-  #text(size: 8pt, fill: ${theme.statsText})[
-    Generated by serverinfo-rest-client · ${escapeTypstText(timestamp)}
-  ]
-]
-`
+#block(fill: ${theme.panelFill}, stroke: 1pt + ${theme.panelStroke}, radius: 4pt, inset: 12pt, width: 100%)[
+  #table(columns: (auto, 1fr), stroke: none, row-gutter: 6pt, ${rows})
+]`
 }
 
-export function registerPlayersCommand(
-  ctx: Context,
-  cfg: Config,
-  apiClient: ApiClient,
-  logger: any,
-  prefix: string,
-  label: string
-) {
+export function registerPlayersCommand(ctx: Context, cfg: Config, apiClient: ApiClient, logger: any, prefix: string, label: string) {
   ctx.command(`${prefix}.players`, '玩家列表')
     .option('mode', '-m <mode:string> 输出模式 (text/image)')
     .action(async ({ session, options }) => {
       try {
         const data = await apiClient.get<PlayersResponse>('/players')
         const modes = resolveOutputModes(options.mode, cfg)
-
         const results: h[] = []
-
         for (const mode of modes) {
           if (mode === 'text') {
-            results.push(h.text(formatTextOutput(data, cfg.hidePlayerCoordinates, label)))
-          } else if (mode === 'typst-image') {
+            results.push(h.text(formatTextOutput(data, label)))
+          } else {
             try {
               const renderer = await getTypstRenderer(ctx, cfg, logger)
-              const theme = buildTypstTheme(cfg)
-              const typstCode = generateTypstCode(data, theme, cfg.hidePlayerCoordinates, label)
-              const pngBuffer = await renderer.toPng(typstCode, cfg.typstRenderScale)
-              results.push(h.image(pngBuffer, 'image/png'))
-            } catch (err) {
-              logger.warn(`Typst 渲染失败: ${err}`)
-              results.push(h.text(`[Typst 渲染失败: ${err.message}]`))
+              results.push(h.image(await renderer.toPng(generateTypstCode(data, buildTypstTheme(cfg), label), cfg.typstRenderScale), 'image/png'))
+            } catch (error) {
+              const fallback = createTypstFailureOutput(error, cfg, modes, formatTextOutput(data, label))
+              if (fallback) results.push(fallback)
             }
           }
         }
-
-        if (cfg.quoteCommandReplies && session.messageId) {
-          return h('', [h.quote(session.messageId), ...results])
-        }
+        if (cfg.quoteCommandReplies && session.messageId) return h('', [h.quote(session.messageId), ...results])
         return results
       } catch (error) {
         logger.error(`获取玩家列表失败: ${error}`)
-        return `❌ 获取玩家列表失败: ${error.message}`
+        return `❌ 获取玩家列表失败: ${error instanceof Error ? error.message : String(error)}`
       }
     })
 }
