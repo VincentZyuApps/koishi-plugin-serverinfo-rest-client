@@ -5,9 +5,7 @@ import type { ServerResponse } from '../api/types'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 import {
   resolveOutputModes,
-  getTypstRenderer,
-  buildTypstTheme,
-  escapeTypstText,
+  renderTypstTemplate,
   createTypstFailureOutput,
 } from '../index'
 
@@ -23,25 +21,18 @@ function formatTextOutput(data: ServerResponse, label: string): string {
 🔌 serverinfo-rest: ${data.pluginVersion}`
 }
 
-function generateTypstCode(data: ServerResponse, theme: ReturnType<typeof buildTypstTheme>, label: string): string {
-  const rows = [
-    ['状态', data.status],
-    ['存档', data.levelName],
-    ['在线玩家', `${data.onlinePlayers} / ${data.maxPlayers}`],
-    ['BDS', data.bdsVersion],
-    ['协议版本', String(data.protocolVersion)],
-    ['LeviLamina', data.levilaminaVersion],
-    ['插件', data.pluginVersion],
-  ].map(([key, value]) => `[${escapeTypstText(key)}], [${escapeTypstText(value)}],`).join('\n')
-  return `#set page(width: 420pt, height: auto, margin: 14pt, fill: ${theme.pageBg})
-#set text(font: ("${theme.fontFamily}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"), size: 11pt, fill: ${theme.textColor}, lang: "zh")
-#block(fill: ${theme.headerFill}, stroke: 2pt + ${theme.headerStroke}, radius: 6pt, inset: 10pt, width: 100%)[
-  #align(center)[#text(size: 16pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(label)} ${COMMAND_NAMES.server.emoji} 服务器信息]]
-]
-#v(8pt)
-#block(fill: ${theme.panelFill}, stroke: 1pt + ${theme.panelStroke}, radius: 4pt, inset: 12pt, width: 100%)[
-  #table(columns: (auto, 1fr), stroke: none, row-gutter: 7pt, ${rows})
-]`
+function createTemplatePayload(data: ServerResponse, label: string) {
+  return {
+    label,
+    status: data.status,
+    level_name: data.levelName,
+    online_players: data.onlinePlayers,
+    max_players: data.maxPlayers,
+    bds_version: data.bdsVersion,
+    protocol_version: data.protocolVersion,
+    levilamina_version: data.levilaminaVersion,
+    plugin_version: data.pluginVersion,
+  }
 }
 
 export function registerServerCommand(ctx: Context, cfg: Config, apiClient: ApiClient, logger: any, prefix: string, label: string) {
@@ -58,8 +49,8 @@ export function registerServerCommand(ctx: Context, cfg: Config, apiClient: ApiC
             results.push(h.text(formatTextOutput(data, label)))
           } else {
             try {
-              const renderer = await getTypstRenderer(ctx, cfg, logger)
-              results.push(h.image(await renderer.toPng(generateTypstCode(data, buildTypstTheme(cfg), label), cfg.typstRenderScale), 'image/png'))
+              const image = await renderTypstTemplate(ctx, cfg, logger, 'serverInfo', createTemplatePayload(data, label))
+              results.push(h.image(image, 'image/png'))
             } catch (error) {
               const fallback = createTypstFailureOutput(error, cfg, modes, formatTextOutput(data, label))
               if (fallback) results.push(fallback)

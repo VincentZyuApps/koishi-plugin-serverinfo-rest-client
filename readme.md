@@ -28,6 +28,28 @@
 
 例如，`mcinfo1.健康检查` 与 `mcinfo1.health` 调用的是同一个功能。
 
+## Typst 运行时模板
+
+插件发布包中的 `templates/` 保存默认模板。启动时，默认模板会复制到 Koishi 根目录下的共享运行目录：
+
+```text
+data/assets/ll-serverinfo-rest-client/runtime/templates
+```
+
+- `mcinfo1`、`mcinfo2` 等多个插件实例共享同一个运行时模板目录。
+- 插件每次出图都读取运行目录中的 `.typ` 文件，修改后下一次渲染即可生效。
+- 启动同步只补充缺失文件，不覆盖用户已经修改的模板。
+- `typstTemplateFolderRelativePath` 在配置页标记为实验性只读项，用于查看相对于 `ctx.baseDir` 的路径片段。
+- 直接修改运行时模板适合熟悉 Typst 的用户，普通使用不建议修改。
+
+插件详情页提供“恢复默认模板”按钮。恢复操作需要 Koishi authority 4，并在执行前进行二次确认。原目录会先完整备份为秒级时间戳目录，例如：
+
+```text
+data/assets/ll-serverinfo-rest-client/runtime/templates-backup-YYYYMMDD-HHmmss
+```
+
+恢复完成后会清理 Typst 编译缓存。备份不会自动删除，可在确认新模板工作正常后手动整理。
+
 ## 白名单语义
 
 - `指令前缀.绑定白名单 <玩家名>` 将当前聊天账号与一个 Xbox 玩家名建立一对一绑定。默认只允许在群聊执行。

@@ -1,5 +1,6 @@
 import { Schema } from 'koishi'
 import { getSchemaFontPath } from './font'
+import { TEMPLATE_ASSET_PARTS } from './template-assets'
 import type { PermissionEntry } from './permissions'
 import { createQQConfigSchema, QQConfig } from './qq/config'
 
@@ -65,6 +66,8 @@ export interface Config extends QQConfig {
   typstEmojiFontPath: string
   /** Typst 字体族名称 */
   typstFontFamily: string
+  /** Typst 运行时模板文件夹相对路径 */
+  typstTemplateFolderRelativePath: string[]
   /** Typst 图片渲染倍率（清晰度） */
   typstRenderScale: number
   /** Typst 背景色 */
@@ -289,6 +292,12 @@ export const Config: Schema<Config> = Schema.intersect([
     typstFontFamily: Schema.string()
       .default('LXGW WenKai Mono')
       .description('🔤 Typst 字体族名称（必须与字体文件中的 family name 一致）'),
+    typstTemplateFolderRelativePath: Schema.array(String)
+      .role('table')
+      .default([...TEMPLATE_ASSET_PARTS])
+      .experimental()
+      .disabled()
+      .description('🧩 Typst 运行时模板文件夹相对路径；相对于 Koishi 根目录 ctx.baseDir，仅供查看'),
     typstRenderScale: Schema.number()
       .default(2.33)
       .min(1)

@@ -2,7 +2,7 @@ import type { Context } from 'koishi'
 import type { ApiClient } from '../api/client'
 import type { PlayerHistoryResponse } from '../api/types'
 import type { Config } from '../config'
-import { buildTypstTheme, escapeTypstText, getTypstRenderer } from '../index'
+import { renderTypstTemplate } from '../index'
 import { buildCommandKeyboard, escapeMarkdown, sendRenderedReply } from '../qq'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 
@@ -25,8 +25,18 @@ export function registerHistoryCommand(
           page: String(page),
           pageSize: String(config.historyPageSize),
         })
-        const renderer = await getTypstRenderer(ctx, config, logger)
-        const image = await renderer.toPng(generateHistoryTypst(config, data), config.typstRenderScale)
+        const image = await renderTypstTemplate(ctx, config, logger, 'playerHistory', {
+          label: config.serverLabel,
+          total: data.total,
+          page: data.page,
+          page_count: data.pageCount,
+          players: data.players.map((player, index) => ({
+            number: (data.page - 1) * data.pageSize + index + 1,
+            name: player.name,
+            total_play: formatDuration(player.totalPlayMs),
+            last_seen: formatDate(player.lastSeenMs),
+          })),
+        })
         const text = formatHistoryText(config, data)
         const buttons = []
         if (data.page > 1) {
@@ -48,38 +58,6 @@ export function registerHistoryCommand(
         return `查询历史记录失败：${error instanceof Error ? error.message : String(error)}`
       }
     })
-}
-
-function generateHistoryTypst(config: Config, data: PlayerHistoryResponse): string {
-  const theme = buildTypstTheme(config)
-  const rows = data.players.length
-    ? data.players.map((player, index) => {
-      const number = (data.page - 1) * data.pageSize + index + 1
-      return `[${number}], [${escapeTypstText(player.name)}], [${escapeTypstText(formatDuration(player.totalPlayMs))}], [${escapeTypstText(formatDate(player.lastSeenMs))}],`
-    }).join('\n')
-    : `[--], [暂无历史玩家], [--], [--],`
-
-  return `#set page(width: 620pt, height: auto, margin: 16pt, fill: ${theme.pageBg})
-#set text(font: ("${escapeTypstText(theme.fontFamily)}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"), size: 10pt, fill: ${theme.textColor}, lang: "zh")
-#block(fill: ${theme.headerFill}, stroke: 2pt + ${theme.headerStroke}, radius: 6pt, inset: 13pt, width: 100%)[
-  #grid(columns: (1fr, auto),
-    [#text(size: 20pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(config.serverLabel)} ${COMMAND_NAMES.history.emoji} 历史玩家]],
-    [#text(size: 11pt, weight: "bold", fill: ${theme.headerText})[共 ${data.total} 人]],
-  )
-]
-#v(10pt)
-#block(fill: ${theme.panelFill}, stroke: 1pt + ${theme.panelStroke}, radius: 4pt, inset: 10pt, width: 100%)[
-  #table(
-    columns: (34pt, 1.2fr, 1fr, 1.25fr),
-    inset: 6pt,
-    stroke: 0.6pt + ${theme.panelStroke},
-    align: (center, left, left, left),
-    table.header([#strong[序号]], [#strong[玩家]], [#strong[累计游玩]], [#strong[最后在线]]),
-    ${rows}
-  )
-]
-#v(7pt)
-#align(center)[#text(size: 8pt, fill: ${theme.statsText})[第 ${data.page} / ${data.pageCount} 页 · 数据从统计功能启用后开始累计]]`
 }
 
 function formatHistoryText(config: Config, data: PlayerHistoryResponse): string {

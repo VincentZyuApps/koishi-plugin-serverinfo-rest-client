@@ -17,6 +17,14 @@ import { registerPlayerDataCommand } from './commands/player-data'
 import { registerExecuteCommand } from './commands/execute-command'
 import { registerWhitelistCommands } from './commands/whitelist'
 import { COMMAND_NAMES, commandUsage } from './commands/names'
+import { applyTemplateConsole } from './console'
+import {
+  ensureTemplateAssets,
+  getRuntimeTemplateDir,
+  getRuntimeTemplatePath,
+  getTemplateWorkspaceDir,
+  type TypstTemplateName,
+} from './template-assets'
 import { applyQQImageServer } from './qq'
 import fs from 'node:fs'
 
@@ -26,13 +34,11 @@ export const reusable = true; // 声明此插件可重用
 
 export const inject = {
   required: [],
-  optional: ['server'],
+  optional: ['server', 'console'],
 }
 
 export { Config, createApiClient }
 export type { ApiClient } from './api/client'
-export { generateOnlineStatusTypst } from './commands/online'
-
 export const usage = `
 ## 🎮 Minecraft BDS 服务器信息查询插件
 
@@ -96,6 +102,31 @@ export interface TypstTheme {
   statsText: string
 }
 
+export interface TypstTemplateTheme {
+  font_family: string
+  page_bg: string
+  text: string
+  header_fill: string
+  header_stroke: string
+  header_text: string
+  panel_fill: string
+  panel_stroke: string
+  section_title: string
+  stats_text: string
+}
+
+function normalizeColorHex(value: string | undefined, fallback: string): string {
+  const normalized = (value || '').trim()
+  if (/^#[0-9a-f]{6}$/i.test(normalized)) return normalized.toLowerCase()
+  if (/^#[0-9a-f]{3}$/i.test(normalized)) {
+    return `#${normalized.slice(1).split('').map(char => `${char}${char}`).join('')}`.toLowerCase()
+  }
+  const rgbMatch = normalized.match(/^rgb\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i)
+  if (!rgbMatch) return fallback
+  const toHex = (channel: string) => Math.min(255, Number(channel)).toString(16).padStart(2, '0')
+  return `#${toHex(rgbMatch[1])}${toHex(rgbMatch[2])}${toHex(rgbMatch[3])}`
+}
+
 function toTypstColor(value: string | undefined, fallback: string): string {
   const v = (value || '').trim()
   if (!v) return `rgb("${fallback}")`
@@ -117,6 +148,21 @@ export function buildTypstTheme(cfg: Config): TypstTheme {
     panelStroke: toTypstColor(cfg.typstPanelStrokeColor, '#cbd9ce'),
     sectionTitle: toTypstColor(cfg.typstSectionTitleColor, '#2c5e3b'),
     statsText: toTypstColor(cfg.typstStatsTextColor, '#66746b'),
+  }
+}
+
+export function buildTypstTemplateTheme(cfg: Config): TypstTemplateTheme {
+  return {
+    font_family: cfg.typstFontFamily || 'LXGW WenKai Mono',
+    page_bg: normalizeColorHex(cfg.typstPageBgColor, '#f2f6f1'),
+    text: normalizeColorHex(cfg.typstTextColor, '#26332b'),
+    header_fill: normalizeColorHex(cfg.typstHeaderFillColor, '#2c5e3b'),
+    header_stroke: normalizeColorHex(cfg.typstHeaderStrokeColor, '#7fa973'),
+    header_text: normalizeColorHex(cfg.typstHeaderTextColor, '#ffffff'),
+    panel_fill: normalizeColorHex(cfg.typstPanelFillColor, '#ffffff'),
+    panel_stroke: normalizeColorHex(cfg.typstPanelStrokeColor, '#cbd9ce'),
+    section_title: normalizeColorHex(cfg.typstSectionTitleColor, '#2c5e3b'),
+    stats_text: normalizeColorHex(cfg.typstStatsTextColor, '#66746b'),
   }
 }
 
@@ -151,7 +197,7 @@ export class TypstRenderer {
     private logger: any,
     private cfg: Config,
   ) {
-    this.workspaceDir = ctx.baseDir
+    this.workspaceDir = getTemplateWorkspaceDir(ctx.baseDir, cfg.typstTemplateFolderRelativePath)
   }
 
   async init(): Promise<void> {
@@ -218,6 +264,31 @@ export class TypstRenderer {
     }
   }
 
+  private toTemplateSvg(template: TypstTemplateName, payload: Record<string, unknown>): string {
+    const compiler = this.getCompiler()
+    const mainFilePath = getRuntimeTemplatePath(
+      this.ctx.baseDir,
+      this.cfg.typstTemplateFolderRelativePath,
+      template,
+    )
+    try {
+      let result = compiler.svg({
+        mainFilePath,
+        inputs: {
+          payload: JSON.stringify({
+            ...payload,
+            theme: buildTypstTemplateTheme(this.cfg),
+          }),
+        },
+        resetRead: true,
+      })
+      result = this.fixSvgForResvg(result)
+      return result
+    } finally {
+      compiler.evictCache(10)
+    }
+  }
+
   async toPng(content: string, scale: number = 2.33): Promise<Buffer> {
     const svg = this.toSvg(content)
     const resvg = new Resvg(svg, {
@@ -226,23 +297,58 @@ export class TypstRenderer {
     })
     return resvg.render().asPng()
   }
+
+  async toTemplatePng(
+    template: TypstTemplateName,
+    payload: Record<string, unknown>,
+    scale: number = 2.33,
+  ): Promise<Buffer> {
+    const svg = this.toTemplateSvg(template, payload)
+    const resvg = new Resvg(svg, {
+      fitTo: { mode: 'zoom', value: scale },
+      font: { loadSystemFonts: true },
+    })
+    return resvg.render().asPng()
+  }
+
+  resetTemplateCache(): void {
+    this.compiler?.evictCache(0)
+  }
 }
 
 const renderers = new WeakMap<Context, TypstRenderer>()
+const activeRenderers = new Set<TypstRenderer>()
 
 export async function getTypstRenderer(ctx: Context, cfg: Config, logger: any): Promise<TypstRenderer> {
   let renderer = renderers.get(ctx)
   if (!renderer) {
     renderer = new TypstRenderer(ctx, logger, cfg)
     renderers.set(ctx, renderer)
+    activeRenderers.add(renderer)
     ctx.on('dispose', () => {
       renderers.delete(ctx)
+      activeRenderers.delete(renderer)
     })
   }
   if (!renderer.isReady()) {
     await renderer.init()
   }
   return renderer
+}
+
+export async function renderTypstTemplate(
+  ctx: Context,
+  cfg: Config,
+  logger: any,
+  template: TypstTemplateName,
+  payload: Record<string, unknown>,
+): Promise<Buffer> {
+  const renderer = await getTypstRenderer(ctx, cfg, logger)
+  return renderer.toTemplatePng(template, payload, cfg.typstRenderScale)
+}
+
+export function resetTypstTemplateCaches(): void {
+  for (const renderer of activeRenderers) renderer.resetTemplateCache()
 }
 
 // ==================== 工具函数 ====================
@@ -283,6 +389,9 @@ export function formatTimestamp(ts: number): string {
 
 export async function apply(ctx: Context, cfg: Config) {
   const logger = ctx.logger(name)
+  await ensureTemplateAssets(ctx, cfg)
+  logger.info(`Typst 运行时模板目录: ${getRuntimeTemplateDir(ctx.baseDir, cfg.typstTemplateFolderRelativePath)}`)
+  applyTemplateConsole(ctx, cfg, logger, resetTypstTemplateCaches)
   await checkAndDownloadFonts(ctx, cfg).catch((error) => {
     logger.warn(`字体下载失败，Typst 图片可能无法正确渲染: ${error}`)
   })
