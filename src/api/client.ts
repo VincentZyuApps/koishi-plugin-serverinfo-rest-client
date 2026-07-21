@@ -1,4 +1,4 @@
-import type { Config } from '../config'
+import type { Config, TokenSendMode } from '../config'
 
 export interface ApiClient {
   get<T>(endpoint: string, params?: Record<string, string>): Promise<T>
@@ -19,6 +19,22 @@ export function createApiClient(config: Config, logger: any): ApiClient {
     return queryString ? `${endpoint}?${queryString}` : endpoint
   }
 
+  function normalizeSendMode(value: TokenSendMode | undefined): TokenSendMode {
+    return value === 'param' || value === 'both' ? value : 'header'
+  }
+
+  function includesParam(mode: TokenSendMode): boolean {
+    return mode === 'param' || mode === 'both'
+  }
+
+  function includesHeader(mode: TokenSendMode): boolean {
+    return mode === 'header' || mode === 'both'
+  }
+
+  function redactUrl(url: string): string {
+    return url.replace(/([?&]token=)[^&]*/gi, '$1***')
+  }
+
   async function request<T>(
     method: 'GET' | 'POST',
     endpoint: string,
@@ -26,8 +42,12 @@ export function createApiClient(config: Config, logger: any): ApiClient {
     body?: unknown,
     admin = false,
   ): Promise<T> {
-    const url = buildUrl(`${apiBase}${endpoint}`, params)
-    logger.debug(`[API] ${method} ${url}`)
+    const authToken = admin ? config.adminToken : config.token
+    const sendMode = normalizeSendMode(admin ? config.adminTokenSendMode : config.tokenSendMode)
+    const queryParams = { ...(params ?? {}) }
+    if (authToken && includesParam(sendMode)) queryParams.token = authToken
+    const url = buildUrl(`${apiBase}${endpoint}`, queryParams)
+    logger.debug(`[API] ${method} ${redactUrl(url)}`)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), config.timeout)
@@ -39,8 +59,8 @@ export function createApiClient(config: Config, logger: any): ApiClient {
           'User-Agent': 'koishi-plugin-serverinfo-rest-client/1.0',
           'Accept': 'application/json',
           ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
-          ...((admin ? config.adminToken : config.token)
-            ? { 'Authorization': `Bearer ${admin ? config.adminToken : config.token}` }
+          ...(authToken && includesHeader(sendMode)
+            ? { 'Authorization': `Bearer ${authToken}` }
             : {}),
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),

@@ -13,19 +13,35 @@ export const usage = `
   <a href="https://www.npmjs.com/package/koishi-plugin-ll-serverinfo-rest-client" target="_blank">
     <img src="https://img.shields.io/npm/dm/koishi-plugin-ll-serverinfo-rest-client?style=flat-square&logo=npm" alt="npm downloads">
   </a>
+  <br>
+  <a href="https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client/actions" target="_blank">
+    <img src="https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client/actions/workflows/test.yml/badge.svg" alt="CI">
+  </a>
+  <br>
   <a href="https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client" target="_blank">
     <img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub">
   </a>
   <a href="https://gitee.com/vincent-zyu/koishi-plugin-ll-serverinfo-rest-client" target="_blank">
     <img src="https://img.shields.io/badge/Gitee-C71D23?style=flat-square&logo=gitee&logoColor=white" alt="Gitee">
   </a>
+  <br>
   <a href="https://koishi.chat/zh-CN/market/" target="_blank">
     <img src="https://img.shields.io/badge/Koishi-Market-5546A3?style=flat-square&logo=${KOISHI_LOGO_BASE64}&logoColor=white" alt="Koishi Market">
   </a>
-  <a href="https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client/actions/workflows/test.yml" target="_blank">
-    <img src="https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client/actions/workflows/test.yml/badge.svg" alt="CI">
+  <br>
+
+  <br>
+  <a href="https://qm.qq.com/q/ZN7fxZ3qCq" target="_blank">
+    <img src="https://img.shields.io/badge/QQ群-1085190201-12B7F5?style=flat-square&logo=qq&logoColor=white" alt="QQ群">
   </a>
+  <br>
 </p>
+
+<h2>💬 交流反馈</h2>
+<p>🐛 Bug 反馈 / 💡 建议 / 👨‍💻 插件开发交流，欢迎加群：</p>
+<p><del>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b>   🎉（这个群G了）</del></p>
+<p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>1085190201</b> 🎉</p>
+<p>💡 在群里直接艾特我，回复的更快哦~ ✨</p>
 
 <p>通过 LeviLamina <code>serverinfo-rest</code> HTTP 服务查询 Minecraft 基岩版服务器，支持服务器状态、TPS、在线与历史玩家、白名单管理和受控命令执行。</p>
 
@@ -45,6 +61,7 @@ export const usage = `
   <li>将 <code>serverUrl</code> 填为 HTTP 服务地址，例如 <code>http://127.0.0.1:60202</code>。</li>
   <li>保持 <code>apiPrefix</code> 与服务端一致，默认是 <code>/api/v1</code>。</li>
   <li>如服务端启用了只读认证，请填写 <code>token</code>；需要白名单或命令管理时还要填写 <code>adminToken</code>。</li>
+  <li><code>tokenSendMode</code> 和 <code>adminTokenSendMode</code> 分别控制两种令牌的发送位置，默认都使用 <code>header</code>。</li>
   <li>按需修改 <code>commandPrefix</code> 和 <code>serverLabel</code>；多个插件实例可以分别使用 <code>mcinfo1</code>、<code>mcinfo2</code>。</li>
 </ol>
 
@@ -88,6 +105,9 @@ export const usage = `
 <ul>
   <li><code>token</code> 是只读访问令牌，用于状态、玩家和历史数据等查询接口。</li>
   <li><code>adminToken</code> 是独立的高权限令牌，用于绑定、解绑、添加、移除白名单和服务端命令接口。</li>
+  <li><code>param</code> 通过 URL 参数发送，<code>header</code> 通过 Bearer 请求头发送，<code>both</code> 同时使用两种形式。</li>
+  <li>客户端两个发送模式默认都是 <code>header</code>；服务端只读接收模式默认 <code>both</code>，管理接收模式默认 <code>header</code>。</li>
+  <li>选择 <code>param</code> 或 <code>both</code> 时 token 会进入 URL，公网环境应使用 HTTPS，并留意代理和访问日志。</li>
   <li>两个令牌应设置为不同的随机值；即使配置了 <code>adminToken</code>，服务端仍可通过自身配置关闭远程命令执行。</li>
   <li>普通绑定和解绑受 <code>whitelistBindingAuthority</code> 以及群聊限制配置控制。</li>
   <li>管理员白名单操作与命令执行分别使用 <code>whitelistManagementAdminList</code> 和 <code>commandExecutionAdminList</code>，两份权限表相互独立。</li>

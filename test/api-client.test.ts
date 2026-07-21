@@ -4,10 +4,14 @@ import { createApiClient } from '../src/api/client'
 const logger = { debug: vi.fn() }
 const config = {
   serverUrl: 'https://example.test/', apiPrefix: '/api/v1/', timeout: 1000,
-  token: 'read-token', adminToken: 'admin-token',
+  token: 'read-token', tokenSendMode: 'header',
+  adminToken: 'admin-token', adminTokenSendMode: 'header',
 } as any
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.clearAllMocks()
+})
 
 describe('createApiClient', () => {
   it('normalizes URLs and sends the read token', async () => {
@@ -35,6 +39,62 @@ describe('createApiClient', () => {
         headers: expect.objectContaining({ Authorization: 'Bearer admin-token' }),
       }),
     )
+  })
+
+  it('sends the read token as a URL parameter without leaking it to logs', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{"ok":true}', { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    await createApiClient({ ...config, tokenSendMode: 'param' }, logger)
+      .get('/players/stats', { name: 'A B' })
+
+    const [url, options] = fetchMock.mock.calls[0]
+    expect(url).toBe('https://example.test/api/v1/players/stats?name=A%20B&token=read-token')
+    expect(options.headers.Authorization).toBeUndefined()
+    expect(logger.debug.mock.calls.flat().join(' ')).toContain('token=***')
+    expect(logger.debug.mock.calls.flat().join(' ')).not.toContain('read-token')
+  })
+
+  it('sends the admin token in both supported locations', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{"ok":true}', { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    await createApiClient({ ...config, adminTokenSendMode: 'both' }, logger)
+      .post('/whitelist/add', { playerName: 'Steve' }, true)
+
+    const [url, options] = fetchMock.mock.calls[0]
+    expect(url).toBe('https://example.test/api/v1/whitelist/add?token=admin-token')
+    expect(options.headers.Authorization).toBe('Bearer admin-token')
+    expect(logger.debug.mock.calls.flat().join(' ')).not.toContain('admin-token')
+  })
+
+  it('sends the read token in both supported locations', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{"ok":true}', { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    await createApiClient({ ...config, tokenSendMode: 'both' }, logger).get('/status')
+
+    const [url, options] = fetchMock.mock.calls[0]
+    expect(url).toBe('https://example.test/api/v1/status?token=read-token')
+    expect(options.headers.Authorization).toBe('Bearer read-token')
+  })
+
+  it('sends the admin token only as a URL parameter when configured', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{"ok":true}', { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    await createApiClient({ ...config, adminTokenSendMode: 'param' }, logger)
+      .post('/whitelist/remove', { playerName: 'Steve' }, true)
+
+    const [url, options] = fetchMock.mock.calls[0]
+    expect(url).toBe('https://example.test/api/v1/whitelist/remove?token=admin-token')
+    expect(options.headers.Authorization).toBeUndefined()
+  })
+
+  it('does not send authentication fields when the selected token is empty', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{"ok":true}', { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+    await createApiClient({ ...config, token: '', tokenSendMode: 'both' }, logger).get('/status')
+
+    const [url, options] = fetchMock.mock.calls[0]
+    expect(url).toBe('https://example.test/api/v1/status')
+    expect(options.headers.Authorization).toBeUndefined()
   })
 
   it('surfaces structured HTTP errors', async () => {

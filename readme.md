@@ -4,14 +4,42 @@
 
 [![npm](https://img.shields.io/npm/v/koishi-plugin-ll-serverinfo-rest-client?style=flat-square&logo=npm)](https://www.npmjs.com/package/koishi-plugin-ll-serverinfo-rest-client)
 [![npm downloads](https://img.shields.io/npm/dm/koishi-plugin-ll-serverinfo-rest-client?style=flat-square&logo=npm)](https://www.npmjs.com/package/koishi-plugin-ll-serverinfo-rest-client)
+
+[![CI](https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client/actions/workflows/test.yml/badge.svg)](https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client/actions)
+
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client)
 [![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=flat-square&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/koishi-plugin-ll-serverinfo-rest-client)
+
 [![Koishi Market](https://img.shields.io/badge/Koishi-Market-5546A3?style=flat-square&logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAABU0lEQVR42p2UQSsFYRSGnxnqLuytKWKpKFkQNsS%2FsOHPWPADLCmxU5S7UzYWNrJR7lYiRF2FeWzOMKZ7mXHqNNP5vvP2nu%2B850CY2lP4X1K31ZbaDm%2BpO%2Bpyp5wfAXVEPfRvO1JHf4AVQGbUh7j4EZ4VkrNCXPVRnf3CUBN1SH2KC28VGOV3ntRhNclZHdcAKYM11QR1oVBOXctzFlNgBTC8qmXxPQEegbVeYApIgJT6tg%2F0AdMp0B%2FBpCabK2AAmAAa%2F2GRBft1oBFPkqTAba7LCiAfQC9wClwAY1HJHepuiO29Yrsf1Dn1uiDU3RTYCtTkl1Leg8k9MB4NGgReI28rV3azgyCz0og01Xl1Uz1QX8uCTELm3UbkTF1VJ9Wr0tn3iBSGdjYG0XivE3VN3VD31PM4a3cc2tIGGI0VkTO7rLxGuiy25ejmjfqsvkSXui62TxaK03td4FXTAAAAAElFTkSuQmCC&logoColor=white)](https://koishi.chat/zh-CN/market/)
-[![CI](https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client/actions/workflows/test.yml/badge.svg)](https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client/actions/workflows/test.yml)
+
+[![QQ群](https://img.shields.io/badge/QQ群-1085190201-12B7F5?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/ZN7fxZ3qCq)
+
+<h2>💬 交流反馈</h2>
+<p>🐛 Bug 反馈 / 💡 建议 / 👨‍💻 插件开发交流，欢迎加群：</p>
+<p><del>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b>   🎉（这个群G了）</del></p>
+<p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>1085190201</b> 🎉</p>
+<p>💡 在群里直接艾特我，回复的更快哦~ ✨</p>
 
 对接 LeviLamina `serverinfo-rest` 服务端，提供服务器状态、历史玩家、玩家统计、远程命令和白名单绑定功能。
 
 > 配套 LeviLamina 服务端：[![LeviLamina Plugin](https://img.shields.io/badge/LeviLamina-Plugin-7FA973?style=flat-square&logo=cplusplus&logoColor=white&labelColor=2C5E3B)](https://github.com/VincentZyuApps/levilamina-plugin-serverinfo-rest) [`levilamina-plugin-serverinfo-rest`](https://github.com/VincentZyuApps/levilamina-plugin-serverinfo-rest)，负责在 Minecraft BDS 内提供本插件所需的 HTTP API。
+
+## Token 发送方式
+
+只读 token 和管理 token 可以分别选择发送位置。两个配置均使用单选框，支持以下三种值：
+
+| 配置值 | 客户端行为 |
+| --- | --- |
+| `param` | 仅通过 URL query 参数 `?token=...` 发送 |
+| `header` | 仅通过 `Authorization: Bearer ...` 请求头发送 |
+| `both` | 在请求头和 URL 参数中同时发送相同 token |
+
+| 客户端配置 | 默认值 | 对应服务端配置 |
+| --- | --- | --- |
+| `tokenSendMode` | `header` | `tokenReceiveMode`，服务端默认 `both` |
+| `adminTokenSendMode` | `header` | `adminTokenReceiveMode`，服务端默认 `header` |
+
+客户端默认使用更安全的 `header`。选择 `param` 或 `both` 后，插件会遮盖自身调试日志中的 token，但反向代理、浏览器或其他网络组件仍可能记录完整 URL，因此公网环境应配合 HTTPS 使用。
 
 ## 指令名称对照
 

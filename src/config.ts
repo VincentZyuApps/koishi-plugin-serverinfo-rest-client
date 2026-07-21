@@ -8,6 +8,7 @@ import { createQQConfigSchema, QQConfig } from './qq/config'
  * 输出模式类型
  */
 export type OutputMode = 'text' | 'typst-image'
+export type TokenSendMode = 'param' | 'header' | 'both'
 
 /**
  * 插件配置接口
@@ -24,8 +25,12 @@ export interface Config extends QQConfig {
   serverUrl: string
   /** 访问令牌 */
   token: string
+  /** 只读访问令牌发送方式 */
+  tokenSendMode: TokenSendMode
   /** 管理 API 访问令牌 */
   adminToken: string
+  /** 管理 API 令牌发送方式 */
+  adminTokenSendMode: TokenSendMode
   /** API 前缀 */
   apiPrefix: string
   /** 请求超时时间（毫秒） */
@@ -106,6 +111,14 @@ function createOutputModeSchema() {
   ).role('checkbox')
 }
 
+function createTokenSendModeSchema() {
+  return Schema.union([
+    Schema.const('param' as const).description('🔗 URL 参数（?token=...）'),
+    Schema.const('header' as const).description('🛡️ Authorization Bearer 请求头'),
+    Schema.const('both' as const).description('🔁 请求头和 URL 参数同时发送'),
+  ]).role('radio')
+}
+
 function createPermissionListSchema() {
   return Schema.array(Schema.object({
     platform: Schema.string()
@@ -146,10 +159,16 @@ export const Config: Schema<Config> = Schema.intersect([
       .default('')
       .role('secret')
       .description('🔑 访问令牌（如果服务器启用了 token 认证）'),
+    tokenSendMode: createTokenSendModeSchema()
+      .default('header')
+      .description('📤🔑 只读 token 发送方式；需要与服务端 tokenReceiveMode 兼容，推荐使用 header'),
     adminToken: Schema.string()
       .default('')
       .role('secret')
       .description('🛡️ 管理 API 令牌（执行命令、绑定白名单使用，必须与服务端 adminToken 一致）'),
+    adminTokenSendMode: createTokenSendModeSchema()
+      .default('header')
+      .description('📤🛡️ 管理 token 发送方式；需要与服务端 adminTokenReceiveMode 兼容，推荐保持 header'),
     apiPrefix: Schema.string()
       .default('/api/v1')
       .description('📡 API 前缀'),
