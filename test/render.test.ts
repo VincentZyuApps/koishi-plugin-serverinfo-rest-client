@@ -1,7 +1,17 @@
 import { describe, expect, it, vi } from 'vitest'
-import { TypstRenderer } from '../src/index'
+import { buildTypstTheme, TypstRenderer } from '../src/index'
 
 describe('TypstRenderer', () => {
+  it('uses the LeviLamina green theme by default and accepts overrides', () => {
+    const defaults = buildTypstTheme({} as any)
+    expect(defaults.headerFill).toBe('rgb("#2c5e3b")')
+    expect(defaults.headerStroke).toBe('rgb("#7fa973")')
+    expect(defaults.pageBg).toBe('rgb("#f2f6f1")')
+
+    const customized = buildTypstTheme({ typstHeaderFillColor: '#123456' } as any)
+    expect(customized.headerFill).toBe('rgb("#123456")')
+  })
+
   it('renders a non-empty PNG through Typst and Resvg', async () => {
     const renderer = new TypstRenderer(
       { baseDir: process.cwd() } as any,

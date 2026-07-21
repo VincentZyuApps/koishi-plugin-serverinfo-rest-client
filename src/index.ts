@@ -97,15 +97,15 @@ function toTypstColor(value: string | undefined, fallback: string): string {
 export function buildTypstTheme(cfg: Config): TypstTheme {
   return {
     fontFamily: cfg.typstFontFamily || 'LXGW WenKai Mono',
-    pageBg: toTypstColor(cfg.typstPageBgColor, '#f9efe2'),
-    textColor: toTypstColor(cfg.typstTextColor, '#2f2f35'),
-    headerFill: toTypstColor(cfg.typstHeaderFillColor, '#5dade2'),
-    headerStroke: toTypstColor(cfg.typstHeaderStrokeColor, '#3498db'),
+    pageBg: toTypstColor(cfg.typstPageBgColor, '#f2f6f1'),
+    textColor: toTypstColor(cfg.typstTextColor, '#26332b'),
+    headerFill: toTypstColor(cfg.typstHeaderFillColor, '#2c5e3b'),
+    headerStroke: toTypstColor(cfg.typstHeaderStrokeColor, '#7fa973'),
     headerText: toTypstColor(cfg.typstHeaderTextColor, '#ffffff'),
-    panelFill: toTypstColor(cfg.typstPanelFillColor, '#fffbf8'),
-    panelStroke: toTypstColor(cfg.typstPanelStrokeColor, '#f3efe5'),
-    sectionTitle: toTypstColor(cfg.typstSectionTitleColor, '#2980b9'),
-    statsText: toTypstColor(cfg.typstStatsTextColor, '#8788a5'),
+    panelFill: toTypstColor(cfg.typstPanelFillColor, '#ffffff'),
+    panelStroke: toTypstColor(cfg.typstPanelStrokeColor, '#cbd9ce'),
+    sectionTitle: toTypstColor(cfg.typstSectionTitleColor, '#2c5e3b'),
+    statsText: toTypstColor(cfg.typstStatsTextColor, '#66746b'),
   }
 }
 

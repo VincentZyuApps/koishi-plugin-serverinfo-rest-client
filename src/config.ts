@@ -1,5 +1,5 @@
 import { Schema } from 'koishi'
-import { DEFAULT_FONT_RELEASE_URLS, getSchemaFontPath } from './font'
+import { getSchemaFontPath } from './font'
 import type { PermissionEntry } from './permissions'
 import { createQQConfigSchema, QQConfig } from './qq/config'
 
@@ -59,10 +59,6 @@ export interface Config extends QQConfig {
   // ========== 🧩 Typst 渲染配置 ==========
   /** 是否自动下载并校验字体 */
   downloadFontsFromRelease: boolean
-  /** 霞鹜文楷字体下载地址 */
-  lxgwFontReleaseUrl: string
-  /** Noto Color Emoji 字体下载地址 */
-  notoEmojiFontReleaseUrl: string
   /** Typst 字体路径 */
   typstFontPath: string
   /** Typst Emoji 字体路径 */
@@ -282,14 +278,6 @@ export const Config: Schema<Config> = Schema.intersect([
     downloadFontsFromRelease: Schema.boolean()
       .default(true)
       .description('📥 是否从 Release 自动下载并校验 Typst 字体'),
-    lxgwFontReleaseUrl: Schema.string()
-      .default(DEFAULT_FONT_RELEASE_URLS.LXGW)
-      .role('textarea', { rows: [2, 5] })
-      .description('🔤 霞鹜文楷 Mono 字体下载地址，失败后自动尝试备用镜像'),
-    notoEmojiFontReleaseUrl: Schema.string()
-      .default(DEFAULT_FONT_RELEASE_URLS.NOTO_EMOJI)
-      .role('textarea', { rows: [2, 5] })
-      .description('😀 Noto Color Emoji 字体下载地址，失败后自动尝试备用镜像'),
     typstFontPath: Schema.string()
       .default(getSchemaFontPath('LXGW'))
       .role('textarea', { rows: [2, 5] })
@@ -309,19 +297,19 @@ export const Config: Schema<Config> = Schema.intersect([
       .description('🔍 Typst 图片渲染倍率（调整输出图片分辨率）'),
     typstPageBgColor: Schema.string()
       .role('color')
-      .default('#f9efe2')
+      .default('#f2f6f1')
       .description('🧁 Typst 背景色'),
     typstTextColor: Schema.string()
       .role('color')
-      .default('#2f2f35')
+      .default('#26332b')
       .description('🖋️ Typst 正文文本颜色'),
     typstHeaderFillColor: Schema.string()
       .role('color')
-      .default('#5dade2')
+      .default('#2c5e3b')
       .description('🎀 Typst 标题栏填充色'),
     typstHeaderStrokeColor: Schema.string()
       .role('color')
-      .default('#3498db')
+      .default('#7fa973')
       .description('🪄 Typst 标题栏描边色'),
     typstHeaderTextColor: Schema.string()
       .role('color')
@@ -329,19 +317,19 @@ export const Config: Schema<Config> = Schema.intersect([
       .description('✨ Typst 标题栏文字颜色'),
     typstPanelFillColor: Schema.string()
       .role('color')
-      .default('#fffbf8')
+      .default('#ffffff')
       .description('📦 Typst 内容面板填充色'),
     typstPanelStrokeColor: Schema.string()
       .role('color')
-      .default('#f3efe5')
+      .default('#cbd9ce')
       .description('🧷 Typst 内容面板描边色'),
     typstSectionTitleColor: Schema.string()
       .role('color')
-      .default('#2980b9')
+      .default('#2c5e3b')
       .description('🧭 Typst 小节标题颜色'),
     typstStatsTextColor: Schema.string()
       .role('color')
-      .default('#8788a5')
+      .default('#66746b')
       .description('📊 Typst 统计信息文字颜色'),
   }).description('🧩 Typst 渲染配置'),
 

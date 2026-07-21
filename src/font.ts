@@ -13,30 +13,21 @@ export const FONT_FILES = {
 
 export type ManagedFontKey = keyof typeof FONT_FILES
 
-type DownloadConfigKey = 'lxgwFontReleaseUrl' | 'notoEmojiFontReleaseUrl'
-
 interface ManagedFontMeta {
   key: ManagedFontKey
   size: number
   sha256: string
-  configUrlKey?: DownloadConfigKey
   urls: string[]
 }
 
 const GITEE_RELEASE_BASE = 'https://gitee.com/vincent-zyu/koishi-plugin-quote-debug-msg-json-image/releases/download/fonts'
 const GITHUB_RELEASE_BASE = 'https://github.com/VincentZyuApps/koishi-plugin-quote-debug-msg-json-image/releases/download/fonts'
 
-export const DEFAULT_FONT_RELEASE_URLS = {
-  LXGW: `${GITEE_RELEASE_BASE}/${FONT_FILES.LXGW}`,
-  NOTO_EMOJI: `${GITEE_RELEASE_BASE}/${FONT_FILES.NOTO_EMOJI}`,
-} as const
-
 const FONT_META: Record<ManagedFontKey, ManagedFontMeta> = {
   LXGW: {
     key: 'LXGW',
     size: 24292472,
     sha256: 'BA4C68AD8420EBDDCDCB3328AAC6585681BEB0D5E14BC51EAF2F84D461719EB4',
-    configUrlKey: 'lxgwFontReleaseUrl',
     urls: [
       `${GITEE_RELEASE_BASE}/${FONT_FILES.LXGW}`,
       `${GITHUB_RELEASE_BASE}/${FONT_FILES.LXGW}`,
@@ -46,7 +37,6 @@ const FONT_META: Record<ManagedFontKey, ManagedFontMeta> = {
     key: 'NOTO_EMOJI',
     size: 10673480,
     sha256: '72A635CB3D2F3524C51620CDDE406B217204E8A6A06C6A096FF8ED4B5FD6E27B',
-    configUrlKey: 'notoEmojiFontReleaseUrl',
     urls: [
       `${GITEE_RELEASE_BASE}/${FONT_FILES.NOTO_EMOJI}`,
       `${GITHUB_RELEASE_BASE}/${FONT_FILES.NOTO_EMOJI}`,
@@ -116,20 +106,14 @@ function validateBuffer(data: Buffer, meta: ManagedFontMeta): string | null {
   return hash === meta.sha256 ? null : `SHA256 不匹配，期望 ${meta.sha256}，实际 ${hash}`
 }
 
-function getDownloadUrls(meta: ManagedFontMeta, cfg: Config): string[] {
-  const configured = meta.configUrlKey ? String(cfg[meta.configUrlKey] || '').trim() : ''
-  return unique([configured, ...meta.urls])
-}
-
 async function downloadFont(
   ctx: Context,
-  cfg: Config,
   meta: ManagedFontMeta,
   filePath: string,
 ): Promise<void> {
   await mkdir(path.dirname(filePath), { recursive: true })
 
-  for (const url of getDownloadUrls(meta, cfg)) {
+  for (const url of meta.urls) {
     ctx.logger.info(`下载字体资源: ${FONT_FILES[meta.key]} <- ${url}`)
     try {
       const response = await ctx.http.get(url, { responseType: 'arraybuffer', timeout: 120000 })
@@ -166,7 +150,7 @@ export async function checkAndDownloadFonts(ctx: Context, cfg: Config): Promise<
 
   for (const target of getDownloadTargets(ctx, cfg)) {
     if (await validateFile(target.path, target.meta)) continue
-    await downloadFont(ctx, cfg, target.meta, target.path)
+    await downloadFont(ctx, target.meta, target.path)
   }
 }
 
