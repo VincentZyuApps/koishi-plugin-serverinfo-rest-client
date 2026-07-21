@@ -2,6 +2,7 @@ import { Context, h } from 'koishi'
 import { Config } from '../config'
 import type { ApiClient } from '../api/client'
 import type { PlayersNamesResponse } from '../api/types'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 import {
   resolveOutputModes,
   getTypstRenderer,
@@ -12,13 +13,13 @@ import {
 
 function formatTextOutput(data: PlayersNamesResponse, label: string): string {
   if (data.count === 0) {
-    return `${label} 📝 玩家名列表
+    return `${label} ${COMMAND_NAMES.playersNames.emoji} 玩家名列表
 
 当前没有玩家在线`
   }
 
   const nameList = data.names.map((name, i) => `  ${i + 1}. ${name}`).join('\n')
-  return `${label} 📝 玩家名列表 (${data.count} 人在线)
+  return `${label} ${COMMAND_NAMES.playersNames.emoji} 玩家名列表 (${data.count} 人在线)
 
 ${nameList}`
 }
@@ -35,7 +36,7 @@ function generateTypstCode(data: PlayersNamesResponse, theme: ReturnType<typeof 
 )
 
 #set text(
-  font: ("${theme.fontFamily}", "Noto Sans CJK SC", "Microsoft YaHei"),
+  font: ("${theme.fontFamily}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"),
   size: 11pt,
   fill: ${theme.textColor},
   lang: "zh"
@@ -50,7 +51,7 @@ function generateTypstCode(data: PlayersNamesResponse, theme: ReturnType<typeof 
     width: 100%
   )[
     #text(size: 16pt, weight: "bold", fill: ${theme.headerText})[
-      ${escapeTypstText(label)} 📝 玩家名列表
+      ${escapeTypstText(label)} ${COMMAND_NAMES.playersNames.emoji} 玩家名列表
     ]
   ]
 ]
@@ -91,7 +92,7 @@ function generateTypstCode(data: PlayersNamesResponse, theme: ReturnType<typeof 
 )
 
 #set text(
-  font: ("${theme.fontFamily}", "Noto Sans CJK SC", "Microsoft YaHei"),
+  font: ("${theme.fontFamily}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"),
   size: 11pt,
   fill: ${theme.textColor},
   lang: "zh"
@@ -106,7 +107,7 @@ function generateTypstCode(data: PlayersNamesResponse, theme: ReturnType<typeof 
     width: 100%
   )[
     #text(size: 16pt, weight: "bold", fill: ${theme.headerText})[
-      ${escapeTypstText(label)} 📝 玩家名列表 (${data.count} 人在线)
+      ${escapeTypstText(label)} ${COMMAND_NAMES.playersNames.emoji} 玩家名列表 (${data.count} 人在线)
     ]
   ]
 ]
@@ -146,7 +147,8 @@ export function registerPlayersNamesCommand(
   prefix: string,
   label: string
 ) {
-  ctx.command(`${prefix}.players-names`, '玩家名列表')
+  ctx.command(primaryCommand(prefix, COMMAND_NAMES.playersNames), commandDescription(COMMAND_NAMES.playersNames, '玩家名列表'))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.playersNames))
     .option('mode', '-m <mode:string> 输出模式 (text/image)')
     .action(async ({ session, options }) => {
       try {

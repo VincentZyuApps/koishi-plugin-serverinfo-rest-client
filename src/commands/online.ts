@@ -2,6 +2,7 @@ import type { Context } from 'koishi'
 import type { Config } from '../config'
 import type { ApiClient } from '../api/client'
 import type { OverviewResponse } from '../api/types'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 import type { OnlineStatusResult } from '../types'
 import { buildTypstTheme, escapeTypstText, getTypstRenderer } from '../index'
 import { sendOnlineStatus } from '../qq'
@@ -20,12 +21,12 @@ export function generateOnlineStatusTypst(config: Config, result: OnlineStatusRe
   const theme = buildTypstTheme(config)
   const checkedAt = new Date(result.checkedAt).toLocaleString('zh-CN')
   const common = `#set page(width: 540pt, height: auto, margin: 16pt, fill: ${theme.pageBg})
-#set text(font: ("${escapeTypstText(theme.fontFamily)}", "Noto Sans CJK SC", "Microsoft YaHei"), size: 11pt, fill: ${theme.textColor}, lang: "zh")`
+#set text(font: ("${escapeTypstText(theme.fontFamily)}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"), size: 11pt, fill: ${theme.textColor}, lang: "zh")`
 
   if (!result.online || !result.overview) {
     return `${common}
 #block(fill: rgb("#8f3b46"), radius: 6pt, inset: 14pt, width: 100%)[
-  #align(center)[#text(size: 22pt, weight: "bold", fill: white)[${escapeTypstText(config.serverLabel)} · 服务器离线]]
+  #align(center)[#text(size: 22pt, weight: "bold", fill: white)[${escapeTypstText(config.serverLabel)} ${COMMAND_NAMES.online.emoji} 服务器离线]]
 ]
 #v(10pt)
 #block(fill: ${theme.panelFill}, stroke: 1pt + ${theme.panelStroke}, radius: 4pt, inset: 14pt, width: 100%)[
@@ -43,7 +44,7 @@ export function generateOnlineStatusTypst(config: Config, result: OnlineStatusRe
   return `${common}
 #block(fill: ${theme.headerFill}, stroke: 2pt + ${theme.headerStroke}, radius: 6pt, inset: 14pt, width: 100%)[
   #grid(columns: (1fr, auto), align: (left, right),
-    [#text(size: 22pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(config.serverLabel)}]],
+    [#text(size: 22pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(config.serverLabel)} ${COMMAND_NAMES.online.emoji} 在线状态]],
     [#text(size: 13pt, weight: "bold", fill: ${theme.headerText})[在线 ${data.players.online} / ${data.players.max}]],
   )
 ]
@@ -78,7 +79,8 @@ export function registerOnlineCommand(
   logger: any,
   prefix: string,
 ) {
-  ctx.command(`${prefix}.查在线`, '查询服务器在线状态')
+  ctx.command(primaryCommand(prefix, COMMAND_NAMES.online), commandDescription(COMMAND_NAMES.online, '查询服务器在线状态'))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.online))
     .action(async ({ session }) => {
       const startedAt = Date.now()
       let result: OnlineStatusResult

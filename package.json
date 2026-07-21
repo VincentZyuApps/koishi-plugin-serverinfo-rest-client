@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-ll-serverinfo-rest-client",
   "description": "Minecraft BDS 服务器信息查询 - 对接 LeviLamina serverinfo-rest 服务端",
-  "version": "0.2.3-alpha.7+20260721",
+  "version": "0.2.4-alpha.10+20260722",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [

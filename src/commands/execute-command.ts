@@ -3,6 +3,7 @@ import type { ApiClient } from '../api/client'
 import type { CommandExecutionResponse } from '../api/types'
 import type { Config } from '../config'
 import { hasPermission } from '../permissions'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 
 export function registerExecuteCommand(
   ctx: Context,
@@ -11,7 +12,11 @@ export function registerExecuteCommand(
   logger: any,
   prefix: string,
 ) {
-  ctx.command(`${prefix}.执行命令 <command:text>`, '执行 BDS 管理命令')
+  ctx.command(
+    `${primaryCommand(prefix, COMMAND_NAMES.executeCommand)} <command:text>`,
+    commandDescription(COMMAND_NAMES.executeCommand, '执行 BDS 管理命令'),
+  )
+    .alias(aliasCommand(prefix, COMMAND_NAMES.executeCommand))
     .action(async ({ session }, rawCommand) => {
       if (!hasPermission(session, config.commandExecutionAdminList)) {
         return '你不在执行命令权限名单中'

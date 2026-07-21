@@ -2,6 +2,7 @@ import { Context, h } from 'koishi'
 import { Config } from '../config'
 import type { ApiClient } from '../api/client'
 import type { PlayersCountResponse } from '../api/types'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 import {
   resolveOutputModes,
   getTypstRenderer,
@@ -11,7 +12,7 @@ import {
 } from '../index'
 
 function formatTextOutput(data: PlayersCountResponse, label: string): string {
-  return `${label} 🔢 玩家数量
+  return `${label} ${COMMAND_NAMES.playersCount.emoji} 玩家数量
 
 👥 当前在线: ${data.count} 人`
 }
@@ -27,7 +28,7 @@ function generateTypstCode(data: PlayersCountResponse, theme: ReturnType<typeof 
 )
 
 #set text(
-  font: ("${theme.fontFamily}", "Noto Sans CJK SC", "Microsoft YaHei"),
+  font: ("${theme.fontFamily}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"),
   size: 11pt,
   fill: ${theme.textColor},
   lang: "zh"
@@ -42,7 +43,7 @@ function generateTypstCode(data: PlayersCountResponse, theme: ReturnType<typeof 
     width: 100%
   )[
     #text(size: 16pt, weight: "bold", fill: ${theme.headerText})[
-      ${escapeTypstText(label)} 🔢 玩家数量
+      ${escapeTypstText(label)} ${COMMAND_NAMES.playersCount.emoji} 玩家数量
     ]
   ]
 ]
@@ -81,7 +82,8 @@ export function registerPlayersCountCommand(
   prefix: string,
   label: string
 ) {
-  ctx.command(`${prefix}.players-count`, '玩家数量')
+  ctx.command(primaryCommand(prefix, COMMAND_NAMES.playersCount), commandDescription(COMMAND_NAMES.playersCount, '玩家数量'))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.playersCount))
     .option('mode', '-m <mode:string> 输出模式 (text/image)')
     .action(async ({ session, options }) => {
       try {

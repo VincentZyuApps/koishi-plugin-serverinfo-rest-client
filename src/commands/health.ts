@@ -2,6 +2,7 @@ import { Context, h } from 'koishi'
 import { Config } from '../config'
 import type { ApiClient } from '../api/client'
 import type { HealthResponse } from '../api/types'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 import {
   resolveOutputModes,
   formatTimestamp,
@@ -12,7 +13,7 @@ import {
 } from '../index'
 
 function formatTextOutput(data: HealthResponse, label: string): string {
-  return `${label} ❤️ 健康检查
+  return `${label} ${COMMAND_NAMES.health.emoji} 健康检查
 
 📊 状态: ${data.status === 'healthy' ? '✅ 健康' : '❌ 异常'}
 ⏰ 时间戳: ${formatTimestamp(data.timestamp)}
@@ -49,7 +50,7 @@ function generateTypstCode(data: HealthResponse, theme: ReturnType<typeof buildT
 )
 
 #set text(
-  font: ("${theme.fontFamily}", "Noto Sans CJK SC", "Microsoft YaHei"),
+  font: ("${theme.fontFamily}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"),
   size: 11pt,
   fill: ${theme.textColor},
   lang: "zh"
@@ -64,7 +65,7 @@ function generateTypstCode(data: HealthResponse, theme: ReturnType<typeof buildT
     width: 100%
   )[
     #text(size: 16pt, weight: "bold", fill: ${theme.headerText})[
-      ${escapeTypstText(label)} ❤️ 健康检查
+      ${escapeTypstText(label)} ${COMMAND_NAMES.health.emoji} 健康检查
     ]
   ]
 ]
@@ -112,7 +113,8 @@ export function registerHealthCommand(
   prefix: string,
   label: string
 ) {
-  ctx.command(`${prefix}.health`, '健康检查')
+  ctx.command(primaryCommand(prefix, COMMAND_NAMES.health), commandDescription(COMMAND_NAMES.health, '健康检查'))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.health))
     .option('mode', '-m <mode:string> 输出模式 (text/image)')
     .action(async ({ session, options }) => {
       try {

@@ -4,6 +4,7 @@ import type { PlayerHistoryResponse } from '../api/types'
 import type { Config } from '../config'
 import { buildTypstTheme, escapeTypstText, getTypstRenderer } from '../index'
 import { buildCommandKeyboard, escapeMarkdown, sendRenderedReply } from '../qq'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 
 export function registerHistoryCommand(
   ctx: Context,
@@ -12,7 +13,11 @@ export function registerHistoryCommand(
   logger: any,
   prefix: string,
 ) {
-  ctx.command(`${prefix}.历史记录 [page:number]`, '查询历史玩家记录')
+  ctx.command(
+    `${primaryCommand(prefix, COMMAND_NAMES.history)} [page:number]`,
+    commandDescription(COMMAND_NAMES.history, '查询历史玩家记录'),
+  )
+    .alias(aliasCommand(prefix, COMMAND_NAMES.history))
     .action(async ({ session }, requestedPage) => {
       const page = Math.max(1, Math.floor(Number(requestedPage) || 1))
       try {
@@ -34,7 +39,7 @@ export function registerHistoryCommand(
         return sendRenderedReply(ctx, session, config, {
           image,
           text,
-          title: `${config.serverLabel} 历史玩家`,
+          title: `${config.serverLabel} ${COMMAND_NAMES.history.emoji} 历史玩家`,
           markdownBody: formatHistoryMarkdown(data),
           keyboard: buildCommandKeyboard(config, buttons),
         }, logger)
@@ -55,10 +60,10 @@ function generateHistoryTypst(config: Config, data: PlayerHistoryResponse): stri
     : `[--], [暂无历史玩家], [--], [--],`
 
   return `#set page(width: 620pt, height: auto, margin: 16pt, fill: ${theme.pageBg})
-#set text(font: ("${escapeTypstText(theme.fontFamily)}", "Noto Sans CJK SC", "Microsoft YaHei"), size: 10pt, fill: ${theme.textColor}, lang: "zh")
+#set text(font: ("${escapeTypstText(theme.fontFamily)}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"), size: 10pt, fill: ${theme.textColor}, lang: "zh")
 #block(fill: ${theme.headerFill}, stroke: 2pt + ${theme.headerStroke}, radius: 6pt, inset: 13pt, width: 100%)[
   #grid(columns: (1fr, auto),
-    [#text(size: 20pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(config.serverLabel)} · 历史玩家]],
+    [#text(size: 20pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(config.serverLabel)} ${COMMAND_NAMES.history.emoji} 历史玩家]],
     [#text(size: 11pt, weight: "bold", fill: ${theme.headerText})[共 ${data.total} 人]],
   )
 ]
@@ -81,7 +86,7 @@ function formatHistoryText(config: Config, data: PlayerHistoryResponse): string 
   const names = data.players.length
     ? data.players.map((player, index) => `${(data.page - 1) * data.pageSize + index + 1}. ${player.name}`).join('\n')
     : '暂无历史玩家'
-  return `${config.serverLabel} 历史玩家共 ${data.total} 人（第 ${data.page}/${data.pageCount} 页）\n${names}`
+  return `${config.serverLabel} ${COMMAND_NAMES.history.emoji} 历史玩家共 ${data.total} 人（第 ${data.page}/${data.pageCount} 页）\n${names}`
 }
 
 function formatHistoryMarkdown(data: PlayerHistoryResponse): string {

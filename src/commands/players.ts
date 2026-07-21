@@ -2,6 +2,7 @@ import { Context, h } from 'koishi'
 import { Config } from '../config'
 import type { ApiClient } from '../api/client'
 import type { PlayersResponse } from '../api/types'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 import {
   resolveOutputModes,
   getTypstRenderer,
@@ -11,8 +12,8 @@ import {
 } from '../index'
 
 function formatTextOutput(data: PlayersResponse, label: string): string {
-  if (!data.players.length) return `${label} 👥 玩家列表\n\n当前没有玩家在线`
-  return `${label} 👥 玩家列表 (${data.count} 人在线)\n\n${data.players.map((player, index) => `${index + 1}. ${player.name}`).join('\n')}`
+  if (!data.players.length) return `${label} ${COMMAND_NAMES.players.emoji} 玩家列表\n\n当前没有玩家在线`
+  return `${label} ${COMMAND_NAMES.players.emoji} 玩家列表 (${data.count} 人在线)\n\n${data.players.map((player, index) => `${index + 1}. ${player.name}`).join('\n')}`
 }
 
 function generateTypstCode(data: PlayersResponse, theme: ReturnType<typeof buildTypstTheme>, label: string): string {
@@ -20,9 +21,9 @@ function generateTypstCode(data: PlayersResponse, theme: ReturnType<typeof build
     ? data.players.map((player, index) => `[${index + 1}.], [${escapeTypstText(player.name)}],`).join('\n')
     : `[--], [当前没有玩家在线],`
   return `#set page(width: 390pt, height: auto, margin: 14pt, fill: ${theme.pageBg})
-#set text(font: ("${theme.fontFamily}", "Noto Sans CJK SC", "Microsoft YaHei"), size: 11pt, fill: ${theme.textColor}, lang: "zh")
+#set text(font: ("${theme.fontFamily}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"), size: 11pt, fill: ${theme.textColor}, lang: "zh")
 #block(fill: ${theme.headerFill}, stroke: 2pt + ${theme.headerStroke}, radius: 6pt, inset: 10pt, width: 100%)[
-  #align(center)[#text(size: 16pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(label)} 在线玩家 ${data.count}]]
+  #align(center)[#text(size: 16pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(label)} ${COMMAND_NAMES.players.emoji} 在线玩家 ${data.count}]]
 ]
 #v(8pt)
 #block(fill: ${theme.panelFill}, stroke: 1pt + ${theme.panelStroke}, radius: 4pt, inset: 12pt, width: 100%)[
@@ -31,7 +32,8 @@ function generateTypstCode(data: PlayersResponse, theme: ReturnType<typeof build
 }
 
 export function registerPlayersCommand(ctx: Context, cfg: Config, apiClient: ApiClient, logger: any, prefix: string, label: string) {
-  ctx.command(`${prefix}.players`, '玩家列表')
+  ctx.command(primaryCommand(prefix, COMMAND_NAMES.players), commandDescription(COMMAND_NAMES.players, '玩家列表'))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.players))
     .option('mode', '-m <mode:string> 输出模式 (text/image)')
     .action(async ({ session, options }) => {
       try {

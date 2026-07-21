@@ -3,6 +3,7 @@ import type { ApiClient } from '../api/client'
 import type { WhitelistBindingResponse, WhitelistManagementResponse } from '../api/types'
 import type { Config } from '../config'
 import { hasPermission } from '../permissions'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand, type CommandName } from './names'
 
 export function registerWhitelistCommands(
   ctx: Context,
@@ -11,9 +12,10 @@ export function registerWhitelistCommands(
   logger: any,
   prefix: string,
 ) {
-  ctx.command(`${prefix}.绑定白名单 <playerName:text>`, '绑定 Minecraft 白名单', {
+  ctx.command(`${primaryCommand(prefix, COMMAND_NAMES.bindWhitelist)} <playerName:text>`, commandDescription(COMMAND_NAMES.bindWhitelist, '绑定 Minecraft 白名单'), {
     authority: config.whitelistBindingAuthority,
   })
+    .alias(aliasCommand(prefix, COMMAND_NAMES.bindWhitelist))
     .action(async ({ session }, rawPlayerName) => {
       if (config.whitelistBindGroupOnly && session.isDirect) return '绑定白名单只能在群聊中使用'
       const playerName = String(rawPlayerName || '').trim()
@@ -38,10 +40,10 @@ export function registerWhitelistCommands(
       }
     })
 
-  ctx.command(`${prefix}.解绑`, '解除当前账号的普通白名单绑定（不撤销管理员直接授权）', {
+  ctx.command(primaryCommand(prefix, COMMAND_NAMES.unbindWhitelist), commandDescription(COMMAND_NAMES.unbindWhitelist, '解除当前账号的普通白名单绑定（不撤销管理员直接授权）'), {
     authority: config.whitelistBindingAuthority,
   })
-    .alias(`${prefix}.解绑白名单`)
+    .alias(aliasCommand(prefix, COMMAND_NAMES.unbindWhitelist))
     .action(async ({ session }) => {
       if (config.whitelistUnbindGroupOnly && session.isDirect) return '解绑白名单只能在群聊中使用'
       if (!config.adminToken) return '尚未配置管理 API 令牌，无法解绑白名单'
@@ -62,8 +64,8 @@ export function registerWhitelistCommands(
       }
     })
 
-  registerWhitelistManagementCommand(ctx, config, apiClient, logger, prefix, '添加白名单', 'add')
-  registerWhitelistManagementCommand(ctx, config, apiClient, logger, prefix, '移除白名单', 'remove')
+  registerWhitelistManagementCommand(ctx, config, apiClient, logger, prefix, COMMAND_NAMES.addWhitelist, 'add')
+  registerWhitelistManagementCommand(ctx, config, apiClient, logger, prefix, COMMAND_NAMES.removeWhitelist, 'remove')
 }
 
 function registerWhitelistManagementCommand(
@@ -72,10 +74,15 @@ function registerWhitelistManagementCommand(
   apiClient: ApiClient,
   logger: any,
   prefix: string,
-  commandName: '添加白名单' | '移除白名单',
+  command: CommandName,
   endpoint: 'add' | 'remove',
 ) {
-  ctx.command(`${prefix}.${commandName} <playerName:text>`, `${commandName}中的 Minecraft 玩家`)
+  const commandName = command.primary
+  ctx.command(
+    `${primaryCommand(prefix, command)} <playerName:text>`,
+    commandDescription(command, `${commandName}中的 Minecraft 玩家`),
+  )
+    .alias(aliasCommand(prefix, command))
     .action(async ({ session }, rawPlayerName) => {
       if (!hasPermission(session, config.whitelistManagementAdminList)) {
         return '你不在白名单管理权限名单中'

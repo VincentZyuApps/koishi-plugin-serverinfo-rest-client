@@ -2,6 +2,7 @@ import { Context, h } from 'koishi'
 import { Config } from '../config'
 import type { ApiClient } from '../api/client'
 import type { PlayerResponse } from '../api/types'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 import {
   resolveOutputModes,
   getTypstRenderer,
@@ -30,9 +31,9 @@ function generateTypstCode(player: PlayerResponse, config: Config, theme: Return
     ? `[位置], [${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)}, ${player.position.z.toFixed(1)}],`
     : ''
   return `#set page(width: 430pt, height: auto, margin: 14pt, fill: ${theme.pageBg})
-#set text(font: ("${theme.fontFamily}", "Noto Sans CJK SC", "Microsoft YaHei"), size: 11pt, fill: ${theme.textColor}, lang: "zh")
+#set text(font: ("${theme.fontFamily}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"), size: 11pt, fill: ${theme.textColor}, lang: "zh")
 #block(fill: ${theme.headerFill}, stroke: 2pt + ${theme.headerStroke}, radius: 6pt, inset: 10pt, width: 100%)[
-  #align(center)[#text(size: 16pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(label)} · ${escapeTypstText(player.name)}]]
+  #align(center)[#text(size: 16pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(label)} ${COMMAND_NAMES.player.emoji} 玩家 · ${escapeTypstText(player.name)}]]
 ]
 #v(8pt)
 #block(fill: ${theme.panelFill}, stroke: 1pt + ${theme.panelStroke}, radius: 4pt, inset: 12pt, width: 100%)[
@@ -47,10 +48,14 @@ function generateTypstCode(player: PlayerResponse, config: Config, theme: Return
 }
 
 export function registerPlayerCommand(ctx: Context, cfg: Config, apiClient: ApiClient, logger: any, prefix: string, label: string) {
-  ctx.command(`${prefix}.player <name:string>`, '查询指定在线玩家')
+  ctx.command(
+    `${primaryCommand(prefix, COMMAND_NAMES.player)} <name:string>`,
+    commandDescription(COMMAND_NAMES.player, '查询指定在线玩家'),
+  )
+    .alias(aliasCommand(prefix, COMMAND_NAMES.player))
     .option('mode', '-m <mode:string> 输出模式 (text/image)')
     .action(async ({ session, options }, name) => {
-      if (!name) return `❌ 请指定玩家名称，例如: ${prefix}.player Steve`
+      if (!name) return `❌ 请指定玩家名称，例如: ${primaryCommand(prefix, COMMAND_NAMES.player)} Steve`
       try {
         const data = await apiClient.get<PlayerResponse>('/player', { name })
         const modes = resolveOutputModes(options.mode, cfg)

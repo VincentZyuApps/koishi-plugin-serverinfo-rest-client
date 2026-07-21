@@ -2,6 +2,7 @@ import { Context, h } from 'koishi'
 import { Config } from '../config'
 import type { ApiClient } from '../api/client'
 import type { StatusResponse } from '../api/types'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 import {
   resolveOutputModes,
   getTypstRenderer,
@@ -22,7 +23,7 @@ const CLIENT_VERSION = pkg.version
 
 function formatTextOutput(data: StatusResponse, label: string): string {
   const statusEmoji = data.status === 'online' ? '🟢' : '🔴'
-  return `${label} 📊 服务器状态
+  return `${label} ${COMMAND_NAMES.status.emoji} 服务器状态
 
 ${statusEmoji} 状态: ${data.status}
 🔌 服务端插件: ${data.plugin} v${data.version}
@@ -44,7 +45,7 @@ function generateTypstCode(data: StatusResponse, theme: ReturnType<typeof buildT
 )
 
 #set text(
-  font: ("${theme.fontFamily}", "Noto Sans CJK SC", "Microsoft YaHei"),
+  font: ("${theme.fontFamily}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"),
   size: 11pt,
   fill: ${theme.textColor},
   lang: "zh"
@@ -59,7 +60,7 @@ function generateTypstCode(data: StatusResponse, theme: ReturnType<typeof buildT
     width: 100%
   )[
     #text(size: 16pt, weight: "bold", fill: ${theme.headerText})[
-      ${escapeTypstText(label)} 📊 服务器状态
+      ${escapeTypstText(label)} ${COMMAND_NAMES.status.emoji} 服务器状态
     ]
   ]
 ]
@@ -117,7 +118,8 @@ export function registerStatusCommand(
   prefix: string,
   label: string
 ) {
-  ctx.command(`${prefix}.status`, '服务器状态')
+  ctx.command(primaryCommand(prefix, COMMAND_NAMES.status), commandDescription(COMMAND_NAMES.status, '服务器状态'))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.status))
     .option('mode', '-m <mode:string> 输出模式 (text/image)')
     .action(async ({ session, options }) => {
       try {

@@ -2,6 +2,7 @@ import { Context, h } from 'koishi'
 import { Config } from '../config'
 import type { ApiClient } from '../api/client'
 import type { ServerResponse } from '../api/types'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 import {
   resolveOutputModes,
   getTypstRenderer,
@@ -11,7 +12,7 @@ import {
 } from '../index'
 
 function formatTextOutput(data: ServerResponse, label: string): string {
-  return `${label} 🖥️ 服务器详细信息
+  return `${label} ${COMMAND_NAMES.server.emoji} 服务器详细信息
 
 📊 状态: ${data.status}
 🌍 存档: ${data.levelName}
@@ -33,9 +34,9 @@ function generateTypstCode(data: ServerResponse, theme: ReturnType<typeof buildT
     ['插件', data.pluginVersion],
   ].map(([key, value]) => `[${escapeTypstText(key)}], [${escapeTypstText(value)}],`).join('\n')
   return `#set page(width: 420pt, height: auto, margin: 14pt, fill: ${theme.pageBg})
-#set text(font: ("${theme.fontFamily}", "Noto Sans CJK SC", "Microsoft YaHei"), size: 11pt, fill: ${theme.textColor}, lang: "zh")
+#set text(font: ("${theme.fontFamily}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"), size: 11pt, fill: ${theme.textColor}, lang: "zh")
 #block(fill: ${theme.headerFill}, stroke: 2pt + ${theme.headerStroke}, radius: 6pt, inset: 10pt, width: 100%)[
-  #align(center)[#text(size: 16pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(label)} 服务器信息]]
+  #align(center)[#text(size: 16pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(label)} ${COMMAND_NAMES.server.emoji} 服务器信息]]
 ]
 #v(8pt)
 #block(fill: ${theme.panelFill}, stroke: 1pt + ${theme.panelStroke}, radius: 4pt, inset: 12pt, width: 100%)[
@@ -44,7 +45,8 @@ function generateTypstCode(data: ServerResponse, theme: ReturnType<typeof buildT
 }
 
 export function registerServerCommand(ctx: Context, cfg: Config, apiClient: ApiClient, logger: any, prefix: string, label: string) {
-  ctx.command(`${prefix}.server`, '服务器详细信息')
+  ctx.command(primaryCommand(prefix, COMMAND_NAMES.server), commandDescription(COMMAND_NAMES.server, '服务器详细信息'))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.server))
     .option('mode', '-m <mode:string> 输出模式 (text/image)')
     .action(async ({ session, options }) => {
       try {

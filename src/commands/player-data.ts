@@ -4,6 +4,7 @@ import type { PlayerStatsResponse } from '../api/types'
 import type { Config } from '../config'
 import { buildTypstTheme, escapeTypstText, getTypstRenderer } from '../index'
 import { buildCommandKeyboard, escapeMarkdown, sendRenderedReply } from '../qq'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
 
 export function registerPlayerDataCommand(
   ctx: Context,
@@ -12,7 +13,11 @@ export function registerPlayerDataCommand(
   logger: any,
   prefix: string,
 ) {
-  ctx.command(`${prefix}.查询数据 <playerName:text>`, '查询历史玩家统计数据')
+  ctx.command(
+    `${primaryCommand(prefix, COMMAND_NAMES.playerData)} <playerName:text>`,
+    commandDescription(COMMAND_NAMES.playerData, '查询历史玩家统计数据'),
+  )
+    .alias(aliasCommand(prefix, COMMAND_NAMES.playerData))
     .action(async ({ session }, rawPlayerName) => {
       const playerName = String(rawPlayerName || '').trim()
       if (!playerName) return `请指定玩家名，例如：${prefix}.查询数据 Steve`
@@ -23,7 +28,7 @@ export function registerPlayerDataCommand(
         return sendRenderedReply(ctx, session, config, {
           image,
           text: formatPlayerDataText(config, data),
-          title: `${config.serverLabel} 玩家数据`,
+          title: `${config.serverLabel} ${COMMAND_NAMES.playerData.emoji} 玩家数据`,
           markdownBody: formatPlayerDataMarkdown(data),
           keyboard: buildCommandKeyboard(config, [
             { label: '刷新数据', command: `${prefix}.查询数据 ${data.name}`, style: 1 },
@@ -40,9 +45,9 @@ export function registerPlayerDataCommand(
 function generatePlayerDataTypst(config: Config, data: PlayerStatsResponse): string {
   const theme = buildTypstTheme(config)
   return `#set page(width: 520pt, height: auto, margin: 16pt, fill: ${theme.pageBg})
-#set text(font: ("${escapeTypstText(theme.fontFamily)}", "Noto Sans CJK SC", "Microsoft YaHei"), size: 11pt, fill: ${theme.textColor}, lang: "zh")
+#set text(font: ("${escapeTypstText(theme.fontFamily)}", "Noto Color Emoji", "Noto Sans CJK SC", "Microsoft YaHei"), size: 11pt, fill: ${theme.textColor}, lang: "zh")
 #block(fill: ${theme.headerFill}, stroke: 2pt + ${theme.headerStroke}, radius: 6pt, inset: 13pt, width: 100%)[
-  #text(size: 20pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(config.serverLabel)} · ${escapeTypstText(data.name)}]
+  #text(size: 20pt, weight: "bold", fill: ${theme.headerText})[${escapeTypstText(config.serverLabel)} ${COMMAND_NAMES.playerData.emoji} 玩家数据 · ${escapeTypstText(data.name)}]
 ]
 #v(10pt)
 #block(fill: ${theme.panelFill}, stroke: 1pt + ${theme.panelStroke}, radius: 4pt, inset: 12pt, width: 100%)[
@@ -60,7 +65,7 @@ function generatePlayerDataTypst(config: Config, data: PlayerStatsResponse): str
 }
 
 function formatPlayerDataText(config: Config, data: PlayerStatsResponse): string {
-  return `${config.serverLabel} 玩家数据：${data.name}\n玩家 ID：${data.xuid}\n历史游玩时间：${formatDuration(data.totalPlayMs)}\n挖掘方块总数：${formatInteger(data.blocksMined)}\n击杀生物总数：${formatInteger(data.mobsKilled)}\n金币数量：经济系统暂未接入`
+  return `${config.serverLabel} ${COMMAND_NAMES.playerData.emoji} 玩家数据：${data.name}\n玩家 ID：${data.xuid}\n历史游玩时间：${formatDuration(data.totalPlayMs)}\n挖掘方块总数：${formatInteger(data.blocksMined)}\n击杀生物总数：${formatInteger(data.mobsKilled)}\n金币数量：经济系统暂未接入`
 }
 
 function formatPlayerDataMarkdown(data: PlayerStatsResponse): string {
