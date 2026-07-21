@@ -3,7 +3,7 @@ import type { ApiClient } from '../api/client'
 import type { CommandExecutionResponse } from '../api/types'
 import type { Config } from '../config'
 import { hasPermission } from '../permissions'
-import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
 
 export function registerExecuteCommand(
   ctx: Context,

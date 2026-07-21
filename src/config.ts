@@ -1,6 +1,6 @@
 import { Schema } from 'koishi'
 import { getSchemaFontPath } from './font'
-import { TEMPLATE_ASSET_PARTS } from './template-assets'
+import { TEMPLATE_ASSET_PARTS } from './template'
 import type { PermissionEntry } from './permissions'
 import { createQQConfigSchema, QQConfig } from './qq/config'
 

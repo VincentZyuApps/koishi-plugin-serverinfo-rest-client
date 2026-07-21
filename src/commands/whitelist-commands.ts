@@ -3,7 +3,7 @@ import type { ApiClient } from '../api/client'
 import type { WhitelistBindingResponse, WhitelistManagementResponse } from '../api/types'
 import type { Config } from '../config'
 import { hasPermission } from '../permissions'
-import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand, type CommandName } from './names'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand, type CommandName } from './command-names'
 
 export function registerWhitelistCommands(
   ctx: Context,

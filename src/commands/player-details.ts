@@ -2,7 +2,7 @@ import { Context, h } from 'koishi'
 import { Config } from '../config'
 import type { ApiClient } from '../api/client'
 import type { PlayerResponse } from '../api/types'
-import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
 import {
   resolveOutputModes,
   renderTypstTemplate,

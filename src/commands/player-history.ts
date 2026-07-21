@@ -4,7 +4,7 @@ import type { PlayerHistoryResponse } from '../api/types'
 import type { Config } from '../config'
 import { renderTypstTemplate } from '../index'
 import { buildCommandKeyboard, escapeMarkdown, sendRenderedReply } from '../qq'
-import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './names'
+import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
 
 export function registerHistoryCommand(
   ctx: Context,

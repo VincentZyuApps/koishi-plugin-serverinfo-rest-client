@@ -2,7 +2,7 @@ import path from 'node:path'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { describe, expect, it, vi } from 'vitest'
 import { buildTypstTheme, TypstRenderer } from '../src/index'
-import { ensureTemplateAssets, TEMPLATE_ENTRIES } from '../src/template-assets'
+import { ensureTemplateAssets, TEMPLATE_ENTRIES } from '../src/template'
 
 const templateConfig = {
   typstFontPath: '',

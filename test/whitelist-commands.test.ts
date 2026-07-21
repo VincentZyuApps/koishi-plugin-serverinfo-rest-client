@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { registerWhitelistCommands } from '../src/commands/whitelist'
+import { registerWhitelistCommands } from '../src/commands/whitelist-commands'
 
 function createHarness(configOverrides: Record<string, unknown> = {}) {
   const actions = new Map<string, Function>()

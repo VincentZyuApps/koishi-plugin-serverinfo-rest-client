@@ -6,7 +6,7 @@ import {
   getRuntimeTemplateDir,
   getTemplateAssetStatus,
   restoreOfficialTemplates,
-} from '../src/template-assets'
+} from '../src/template'
 
 const config = {
   typstTemplateFolderRelativePath: ['data', 'assets', 'll-serverinfo-rest-client', 'runtime', 'templates'],
@@ -67,7 +67,7 @@ describe('Typst template assets', () => {
       await ensureTemplateAssets(ctx, config)
       const runtimeDir = getRuntimeTemplateDir(baseDir, config.typstTemplateFolderRelativePath)
       await writeFile(path.join(runtimeDir, 'common.typ'), '#let setup-page(width) = { set page(width: width) }\n', 'utf8')
-      const entryFiles = (await import('../src/template-assets')).TEMPLATE_FILES.filter(file => file !== 'common.typ')
+      const entryFiles = (await import('../src/template')).TEMPLATE_FILES.filter(file => file !== 'common.typ')
       for (const fileName of entryFiles) {
         await writeFile(path.join(runtimeDir, fileName), '#import "common.typ": *\n#setup-page(400pt)\n', 'utf8')
       }

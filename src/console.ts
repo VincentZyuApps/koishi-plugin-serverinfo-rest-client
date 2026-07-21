@@ -8,7 +8,7 @@ import {
   restoreOfficialTemplates,
   type TemplateAssetStatus,
   type TemplateRestoreResult,
-} from './template-assets'
+} from './template'
 
 export interface TemplateConsoleStatus extends TemplateAssetStatus {
   files: string[]
