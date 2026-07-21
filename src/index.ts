@@ -39,51 +39,7 @@ export const inject = {
 
 export { Config, createApiClient }
 export type { ApiClient } from './api/client'
-export const usage = `
-## 🎮 Minecraft BDS 服务器信息查询插件
-
-对接 LeviLamina serverinfo-rest 服务端，查询 Minecraft BDS 服务器信息。
-
-### ⚠️ 前置依赖
-
-Typst 图片由插件内置编译器和 Resvg 在本地渲染，无需额外渲染服务。
-
-### 🎯 功能特性
-
-- 🔍 查询服务器健康状态
-- 📊 查询服务器状态和详细信息
-- 👥 查询在线玩家列表
-- 📝 支持 文字 / Typst 图片 两种输出模式
-
-### 📝 指令列表
-
-默认前缀为 \`mcinfo1\`，中文名称是主指令，英文名称是 alias。
-
-| 中文主指令 | 英文 alias | 说明 |
-| --- | --- | --- |
-| \`mcinfo1.健康检查\` | \`mcinfo1.health\` | 健康检查 |
-| \`mcinfo1.查在线\` | \`mcinfo1.online\` | 综合在线状态 |
-| \`mcinfo1.历史记录 [页码]\` | \`mcinfo1.history [页码]\` | 历史玩家列表 |
-| \`mcinfo1.查询数据 <玩家名>\` | \`mcinfo1.player-data <玩家名>\` | 历史玩家统计 |
-| \`mcinfo1.绑定白名单 <玩家名>\` | \`mcinfo1.bind-whitelist <玩家名>\` | 绑定当前账号白名单 |
-| \`mcinfo1.解绑\` | \`mcinfo1.unbind\` | 解除当前账号绑定 |
-| \`mcinfo1.添加白名单 <玩家名>\` | \`mcinfo1.add-whitelist <玩家名>\` | 管理员添加白名单 |
-| \`mcinfo1.移除白名单 <玩家名>\` | \`mcinfo1.remove-whitelist <玩家名>\` | 管理员移除白名单 |
-| \`mcinfo1.执行命令 <命令>\` | \`mcinfo1.execute-command <命令>\` | 执行 BDS 管理命令 |
-| \`mcinfo1.服务器状态\` | \`mcinfo1.status\` | 简要服务器状态 |
-| \`mcinfo1.服务器信息\` | \`mcinfo1.server\` | 服务器详细信息 |
-| \`mcinfo1.玩家列表\` | \`mcinfo1.players\` | 在线玩家详情 |
-| \`mcinfo1.玩家数量\` | \`mcinfo1.players-count\` | 在线玩家数量 |
-| \`mcinfo1.玩家名列表\` | \`mcinfo1.players-names\` | 在线玩家名列表 |
-| \`mcinfo1.查询玩家 <玩家名>\` | \`mcinfo1.player <玩家名>\` | 查询指定在线玩家 |
-
-### 🎛️ 通用选项
-
-所有指令都支持 \`--mode\` 参数来指定输出模式：
-
-- \`--mode text\` - 文字输出
-- \`--mode image\` - Typst 图片输出
-`
+export { usage } from './usage'
 
 // ==================== Typst 渲染器 ====================
 

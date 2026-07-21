@@ -1,0 +1,116 @@
+const pkg = require('../package.json')
+
+const KOISHI_LOGO_BASE64 = 'data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAABU0lEQVR42p2UQSsFYRSGnxnqLuytKWKpKFkQNsS%2FsOHPWPADLCmxU5S7UzYWNrJR7lYiRF2FeWzOMKZ7mXHqNNP5vvP2nu%2B850CY2lP4X1K31ZbaDm%2BpO%2Bpyp5wfAXVEPfRvO1JHf4AVQGbUh7j4EZ4VkrNCXPVRnf3CUBN1SH2KC28VGOV3ntRhNclZHdcAKYM11QR1oVBOXctzFlNgBTC8qmXxPQEegbVeYApIgJT6tg%2F0AdMp0B%2FBpCabK2AAmAAa%2F2GRBft1oBFPkqTAba7LCiAfQC9wClwAY1HJHepuiO29Yrsf1Dn1uiDU3RTYCtTkl1Leg8k9MB4NGgReI28rV3azgyCz0og01Xl1Uz1QX8uCTELm3UbkTF1VJ9Wr0tn3iBSGdjYG0XivE3VN3VD31PM4a3cc2tIGGI0VkTO7rLxGuiy25ejmjfqsvkSXui62TxaK03td4FXTAAAAAElFTkSuQmCC'
+
+export const usage = `
+<h1>🎮 Minecraft BDS 服务器信息查询</h1>
+<p><strong>当前版本：v${pkg.version}</strong></p>
+
+<p>
+  <a href="https://www.npmjs.com/package/koishi-plugin-ll-serverinfo-rest-client" target="_blank">
+    <img src="https://img.shields.io/npm/v/koishi-plugin-ll-serverinfo-rest-client?style=flat-square&logo=npm" alt="npm version">
+  </a>
+  <a href="https://www.npmjs.com/package/koishi-plugin-ll-serverinfo-rest-client" target="_blank">
+    <img src="https://img.shields.io/npm/dm/koishi-plugin-ll-serverinfo-rest-client?style=flat-square&logo=npm" alt="npm downloads">
+  </a>
+  <a href="https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub">
+  </a>
+  <a href="https://gitee.com/vincent-zyu/koishi-plugin-ll-serverinfo-rest-client" target="_blank">
+    <img src="https://img.shields.io/badge/Gitee-C71D23?style=flat-square&logo=gitee&logoColor=white" alt="Gitee">
+  </a>
+  <a href="https://koishi.chat/zh-CN/market/" target="_blank">
+    <img src="https://img.shields.io/badge/Koishi-Market-5546A3?style=flat-square&logo=${KOISHI_LOGO_BASE64}&logoColor=white" alt="Koishi Market">
+  </a>
+  <a href="https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client/actions/workflows/test.yml" target="_blank">
+    <img src="https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client/actions/workflows/test.yml/badge.svg" alt="CI">
+  </a>
+</p>
+
+<p>通过 LeviLamina <code>serverinfo-rest</code> HTTP 服务查询 Minecraft 基岩版服务器，支持服务器状态、TPS、在线与历史玩家、白名单管理和受控命令执行。</p>
+
+<ul>
+  <li>📊 支持文字、Typst 图片与 QQ Markdown 输出。</li>
+  <li>👥 中文主指令和英文 alias 可同时使用，并支持多个服务器实例。</li>
+  <li>🧩 Typst 在本地完成渲染，不依赖额外的在线渲染服务。</li>
+</ul>
+
+<p><strong>使用前请先安装并启动服务端 <code>serverinfo-rest</code> 插件，再正确填写 <code>serverUrl</code>、<code>token</code> 和 <code>adminToken</code>。</strong></p>
+
+<details>
+<summary><strong>🚀 快速接入与连接配置（点击展开）</strong></summary>
+
+<ol>
+  <li>确认 BDS、LeviLamina 和 <code>serverinfo-rest</code> 已启动，健康检查接口可以访问。</li>
+  <li>将 <code>serverUrl</code> 填为 HTTP 服务地址，例如 <code>http://127.0.0.1:60202</code>。</li>
+  <li>保持 <code>apiPrefix</code> 与服务端一致，默认是 <code>/api/v1</code>。</li>
+  <li>如服务端启用了只读认证，请填写 <code>token</code>；需要白名单或命令管理时还要填写 <code>adminToken</code>。</li>
+  <li>按需修改 <code>commandPrefix</code> 和 <code>serverLabel</code>；多个插件实例可以分别使用 <code>mcinfo1</code>、<code>mcinfo2</code>。</li>
+</ol>
+
+<p>Koishi 与 BDS 不在同一台机器时，请确认服务端监听地址、防火墙和局域网路由允许 Koishi 访问对应端口。管理令牌请只填写在可信环境中，不要发送到群聊或公开日志。</p>
+</details>
+
+<details>
+<summary><strong>📝 完整指令与英文 alias（点击展开）</strong></summary>
+
+<p>默认前缀为 <code>mcinfo1</code>。中文名称是主指令，英文名称是等价 alias；修改 <code>commandPrefix</code> 后两者会一起变化。</p>
+
+<table>
+  <thead>
+    <tr><th>中文主指令</th><th>英文 alias</th><th>用途</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>mcinfo1.健康检查</code></td><td><code>mcinfo1.health</code></td><td>服务健康状态与运行时间</td></tr>
+    <tr><td><code>mcinfo1.查在线</code></td><td><code>mcinfo1.online</code></td><td>TPS、延迟、在线玩家和版本概览</td></tr>
+    <tr><td><code>mcinfo1.历史记录 [页码]</code></td><td><code>mcinfo1.history [页码]</code></td><td>分页查询历史玩家</td></tr>
+    <tr><td><code>mcinfo1.查询数据 &lt;玩家名&gt;</code></td><td><code>mcinfo1.player-data &lt;玩家名&gt;</code></td><td>查询历史游玩与统计数据</td></tr>
+    <tr><td><code>mcinfo1.绑定白名单 &lt;玩家名&gt;</code></td><td><code>mcinfo1.bind-whitelist &lt;玩家名&gt;</code></td><td>绑定当前聊天账号白名单</td></tr>
+    <tr><td><code>mcinfo1.解绑</code></td><td><code>mcinfo1.unbind</code></td><td>解除当前账号的普通绑定</td></tr>
+    <tr><td><code>mcinfo1.添加白名单 &lt;玩家名&gt;</code></td><td><code>mcinfo1.add-whitelist &lt;玩家名&gt;</code></td><td>管理员直接添加白名单</td></tr>
+    <tr><td><code>mcinfo1.移除白名单 &lt;玩家名&gt;</code></td><td><code>mcinfo1.remove-whitelist &lt;玩家名&gt;</code></td><td>管理员移除白名单与授权</td></tr>
+    <tr><td><code>mcinfo1.执行命令 &lt;命令&gt;</code></td><td><code>mcinfo1.execute-command &lt;命令&gt;</code></td><td>执行受权限控制的 BDS 命令</td></tr>
+    <tr><td><code>mcinfo1.服务器状态</code></td><td><code>mcinfo1.status</code></td><td>查询简要服务器状态</td></tr>
+    <tr><td><code>mcinfo1.服务器信息</code></td><td><code>mcinfo1.server</code></td><td>查询服务器详细信息</td></tr>
+    <tr><td><code>mcinfo1.玩家列表</code></td><td><code>mcinfo1.players</code></td><td>查询在线玩家详细资料</td></tr>
+    <tr><td><code>mcinfo1.玩家数量</code></td><td><code>mcinfo1.players-count</code></td><td>查询在线玩家数量</td></tr>
+    <tr><td><code>mcinfo1.玩家名列表</code></td><td><code>mcinfo1.players-names</code></td><td>只查询在线玩家名列表</td></tr>
+    <tr><td><code>mcinfo1.查询玩家 &lt;玩家名&gt;</code></td><td><code>mcinfo1.player &lt;玩家名&gt;</code></td><td>查询指定在线玩家</td></tr>
+  </tbody>
+</table>
+
+<p>查询类指令可通过 <code>--mode text</code> 或 <code>--mode image</code> 临时指定输出形式。</p>
+</details>
+
+<details>
+<summary><strong>🔐 Token、权限与白名单说明（点击展开）</strong></summary>
+
+<ul>
+  <li><code>token</code> 是只读访问令牌，用于状态、玩家和历史数据等查询接口。</li>
+  <li><code>adminToken</code> 是独立的高权限令牌，用于绑定、解绑、添加、移除白名单和服务端命令接口。</li>
+  <li>两个令牌应设置为不同的随机值；即使配置了 <code>adminToken</code>，服务端仍可通过自身配置关闭远程命令执行。</li>
+  <li>普通绑定和解绑受 <code>whitelistBindingAuthority</code> 以及群聊限制配置控制。</li>
+  <li>管理员白名单操作与命令执行分别使用 <code>whitelistManagementAdminList</code> 和 <code>commandExecutionAdminList</code>，两份权限表相互独立。</li>
+</ul>
+
+<p><code>解绑</code> 只解除当前聊天账号建立的普通绑定，不会撤销管理员通过“添加白名单”建立的直接授权。</p>
+</details>
+
+<details>
+<summary><strong>🎨 输出模式、字体与 Typst 模板（点击展开）</strong></summary>
+
+<ul>
+  <li><code>defaultOutputModes</code> 可选择文字和 Typst 图片，并允许同时发送多种输出。</li>
+  <li>首次启动时可自动从 Release 下载并校验霞鹜文楷 Mono 与 Emoji 字体。</li>
+  <li><code>typstTransparentBackground</code> 默认关闭；开启后 PNG 保留透明背景。</li>
+  <li>主题色、正文色、面板色和渲染倍率均可在插件配置页调整。</li>
+  <li>默认模板会复制到 <code>data/assets/ll-serverinfo-rest-client/runtime/templates</code>，多个插件实例共享该目录。</li>
+  <li>启动时只补充缺失模板，不覆盖用户修改；配置页的“恢复默认模板”会先创建秒级时间戳备份，再执行覆盖。</li>
+</ul>
+
+<p>直接编辑运行目录中的 <code>.typ</code> 文件适合熟悉 Typst 的用户。模板修改会影响后续出图，建议修改前自行备份，或通过插件详情页恢复默认模板。</p>
+</details>
+
+<hr>
+<p>项目地址：<a href="https://github.com/VincentZyuApps/koishi-plugin-serverinfo-rest-client" target="_blank">GitHub</a> · <a href="https://gitee.com/vincent-zyu/koishi-plugin-ll-serverinfo-rest-client" target="_blank">Gitee</a></p>
+`
