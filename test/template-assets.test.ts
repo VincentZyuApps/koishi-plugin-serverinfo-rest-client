@@ -83,7 +83,9 @@ describe('Typst template assets', () => {
   })
 
   it('rejects paths that escape the Koishi base directory', () => {
-    expect(() => getRuntimeTemplateDir('C:\\koishi', ['..', 'outside'])).toThrow('非法的 Typst 模板路径片段')
-    expect(() => getRuntimeTemplateDir('C:\\koishi', ['C:\\outside'])).toThrow('非法的 Typst 模板路径片段')
+    const baseDir = path.resolve('koishi-test')
+    for (const unsafePart of ['..', '/outside', 'C:\\outside', 'nested/path', 'nested\\path']) {
+      expect(() => getRuntimeTemplateDir(baseDir, [unsafePart])).toThrow('非法的 Typst 模板路径片段')
+    }
   })
 })

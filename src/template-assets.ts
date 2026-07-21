@@ -63,7 +63,9 @@ function normalizeAssetParts(parts: readonly string[] | undefined): string[] {
   const values = (parts || TEMPLATE_ASSET_PARTS).map(part => String(part).trim()).filter(Boolean)
   const normalized = values.length ? values : [...TEMPLATE_ASSET_PARTS]
   for (const part of normalized) {
-    if (part === '.' || part === '..' || path.isAbsolute(part) || path.basename(part) !== part) {
+    const isAbsolute = path.posix.isAbsolute(part) || path.win32.isAbsolute(part)
+    const isSingleSegment = path.posix.basename(part) === part && path.win32.basename(part) === part
+    if (part === '.' || part === '..' || isAbsolute || !isSingleSegment) {
       throw new Error(`非法的 Typst 模板路径片段: ${part}`)
     }
   }
