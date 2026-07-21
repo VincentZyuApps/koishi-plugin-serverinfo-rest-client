@@ -39,8 +39,11 @@ data/assets/ll-serverinfo-rest-client/runtime/templates
 - `mcinfo1`、`mcinfo2` 等多个插件实例共享同一个运行时模板目录。
 - 插件每次出图都读取运行目录中的 `.typ` 文件，修改后下一次渲染即可生效。
 - 启动同步只补充缺失文件，不覆盖用户已经修改的模板。
+- 启动时会备份并自动修复曾导致字体和页面背景失效的旧版默认模板，但不会覆盖其他自定义模板。
 - `typstTemplateFolderRelativePath` 在配置页标记为实验性只读项，用于查看相对于 `ctx.baseDir` 的路径片段。
 - 直接修改运行时模板适合熟悉 Typst 的用户，普通使用不建议修改。
+
+`typstTransparentBackground` 默认关闭，此时图片使用 `typstPageBgColor` 作为不透明背景；开启后输出 PNG 会保留透明背景。
 
 插件详情页提供“恢复默认模板”按钮。恢复操作需要 Koishi authority 4，并在执行前进行二次确认。原目录会先完整备份为秒级时间戳目录，例如：
 

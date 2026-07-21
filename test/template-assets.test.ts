@@ -60,6 +60,28 @@ describe('Typst template assets', () => {
     }
   })
 
+  it('repairs the known legacy templates whose page setup was scoped incorrectly', async () => {
+    const baseDir = await createBaseDir()
+    const ctx = { baseDir } as any
+    try {
+      await ensureTemplateAssets(ctx, config)
+      const runtimeDir = getRuntimeTemplateDir(baseDir, config.typstTemplateFolderRelativePath)
+      await writeFile(path.join(runtimeDir, 'common.typ'), '#let setup-page(width) = { set page(width: width) }\n', 'utf8')
+      const entryFiles = (await import('../src/template-assets')).TEMPLATE_FILES.filter(file => file !== 'common.typ')
+      for (const fileName of entryFiles) {
+        await writeFile(path.join(runtimeDir, fileName), '#import "common.typ": *\n#setup-page(400pt)\n', 'utf8')
+      }
+
+      await ensureTemplateAssets(ctx, config)
+
+      expect(await readFile(path.join(runtimeDir, 'common.typ'), 'utf8')).not.toContain('#let setup-page(')
+      expect(await readFile(path.join(runtimeDir, 'players-count.typ'), 'utf8')).toContain('#set page(')
+      expect((await getTemplateAssetStatus(baseDir, config.typstTemplateFolderRelativePath)).modifiedCount).toBe(0)
+    } finally {
+      await rm(baseDir, { recursive: true, force: true })
+    }
+  })
+
   it('rejects paths that escape the Koishi base directory', () => {
     expect(() => getRuntimeTemplateDir('C:\\koishi', ['..', 'outside'])).toThrow('非法的 Typst 模板路径片段')
     expect(() => getRuntimeTemplateDir('C:\\koishi', ['C:\\outside'])).toThrow('非法的 Typst 模板路径片段')

@@ -9,6 +9,7 @@ const templateConfig = {
   typstEmojiFontPath: '',
   typstFontFamily: 'Arial',
   typstTemplateFolderRelativePath: ['runtime', 'templates'],
+  typstTransparentBackground: false,
   typstPageBgColor: '#f2f6f1',
   typstTextColor: '#26332b',
   typstHeaderFillColor: '#2c5e3b',
@@ -29,6 +30,9 @@ describe('TypstRenderer', () => {
 
     const customized = buildTypstTheme({ typstHeaderFillColor: '#123456' } as any)
     expect(customized.headerFill).toBe('rgb("#123456")')
+
+    const transparent = buildTypstTheme({ typstTransparentBackground: true } as any)
+    expect(transparent.pageBg).toBe('none')
   })
 
   it('renders a non-empty PNG through Typst and Resvg', async () => {
@@ -118,6 +122,14 @@ describe('TypstRenderer', () => {
         const png = await renderer.toTemplatePng(template, payload, 1)
         expect(png.subarray(0, 8).toString('hex'), `${template} conditional variant`).toBe('89504e470d0a1a0a')
       }
+
+      const transparentRenderer = new TypstRenderer(ctx, logger, {
+        ...templateConfig,
+        typstTransparentBackground: true,
+      })
+      await transparentRenderer.init()
+      const transparentPng = await transparentRenderer.toTemplatePng('playersCount', payloads.playersCount, 1)
+      expect(transparentPng.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a')
     } finally {
       await rm(baseDir, { recursive: true, force: true })
     }

@@ -104,6 +104,7 @@ export interface TypstTheme {
 
 export interface TypstTemplateTheme {
   font_family: string
+  transparent_background: boolean
   page_bg: string
   text: string
   header_fill: string
@@ -139,7 +140,7 @@ function toTypstColor(value: string | undefined, fallback: string): string {
 export function buildTypstTheme(cfg: Config): TypstTheme {
   return {
     fontFamily: cfg.typstFontFamily || 'LXGW WenKai Mono',
-    pageBg: toTypstColor(cfg.typstPageBgColor, '#f2f6f1'),
+    pageBg: cfg.typstTransparentBackground ? 'none' : toTypstColor(cfg.typstPageBgColor, '#f2f6f1'),
     textColor: toTypstColor(cfg.typstTextColor, '#26332b'),
     headerFill: toTypstColor(cfg.typstHeaderFillColor, '#2c5e3b'),
     headerStroke: toTypstColor(cfg.typstHeaderStrokeColor, '#7fa973'),
@@ -154,6 +155,7 @@ export function buildTypstTheme(cfg: Config): TypstTheme {
 export function buildTypstTemplateTheme(cfg: Config): TypstTemplateTheme {
   return {
     font_family: cfg.typstFontFamily || 'LXGW WenKai Mono',
+    transparent_background: !!cfg.typstTransparentBackground,
     page_bg: normalizeColorHex(cfg.typstPageBgColor, '#f2f6f1'),
     text: normalizeColorHex(cfg.typstTextColor, '#26332b'),
     header_fill: normalizeColorHex(cfg.typstHeaderFillColor, '#2c5e3b'),
@@ -294,6 +296,9 @@ export class TypstRenderer {
     const resvg = new Resvg(svg, {
       fitTo: { mode: 'zoom', value: scale },
       font: { loadSystemFonts: true },
+      ...(!this.cfg.typstTransparentBackground && {
+        background: normalizeColorHex(this.cfg.typstPageBgColor, '#f2f6f1'),
+      }),
     })
     return resvg.render().asPng()
   }
@@ -307,6 +312,9 @@ export class TypstRenderer {
     const resvg = new Resvg(svg, {
       fitTo: { mode: 'zoom', value: scale },
       font: { loadSystemFonts: true },
+      ...(!this.cfg.typstTransparentBackground && {
+        background: normalizeColorHex(this.cfg.typstPageBgColor, '#f2f6f1'),
+      }),
     })
     return resvg.render().asPng()
   }

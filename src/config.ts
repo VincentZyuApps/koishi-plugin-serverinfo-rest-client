@@ -70,6 +70,8 @@ export interface Config extends QQConfig {
   typstTemplateFolderRelativePath: string[]
   /** Typst 图片渲染倍率（清晰度） */
   typstRenderScale: number
+  /** Typst 图片背景是否透明 */
+  typstTransparentBackground: boolean
   /** Typst 背景色 */
   typstPageBgColor: string
   /** Typst 正文文本颜色 */
@@ -304,6 +306,9 @@ export const Config: Schema<Config> = Schema.intersect([
       .max(10)
       .step(0.01)
       .description('🔍 Typst 图片渲染倍率（调整输出图片分辨率）'),
+    typstTransparentBackground: Schema.boolean()
+      .default(false)
+      .description('🪟 Typst 图片背景是否透明；关闭时使用下方背景色'),
     typstPageBgColor: Schema.string()
       .role('color')
       .default('#f2f6f1')

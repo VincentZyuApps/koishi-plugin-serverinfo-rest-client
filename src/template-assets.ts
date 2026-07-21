@@ -115,6 +115,32 @@ async function seedMissingTemplates(baseDir: string, parts?: readonly string[]):
   const bundledDir = getBundledTemplateDir()
   const runtimeDir = getRuntimeTemplateDir(baseDir, parts)
   await mkdir(runtimeDir, { recursive: true })
+
+  const hasLegacyCommon = existsSync(path.join(runtimeDir, 'common.typ'))
+    && (await readFile(path.join(runtimeDir, 'common.typ'), 'utf8')).includes('#let setup-page(')
+  const hasLegacyEntries = hasLegacyCommon && await Promise.all(
+    Object.values(TEMPLATE_ENTRIES).map(async (fileName) => {
+      const filePath = path.join(runtimeDir, fileName)
+      return existsSync(filePath) && (await readFile(filePath, 'utf8')).includes('#setup-page(')
+    }),
+  ).then(results => results.every(Boolean))
+
+  if (hasLegacyEntries) {
+    const backupPath = await getUniqueBackupPath(runtimeDir)
+    await rename(runtimeDir, backupPath)
+    try {
+      await mkdir(runtimeDir, { recursive: true })
+      for (const fileName of TEMPLATE_FILES) {
+        await copyFileAtomic(path.join(bundledDir, fileName), path.join(runtimeDir, fileName))
+      }
+    } catch (error) {
+      await rm(runtimeDir, { recursive: true, force: true })
+      await rename(backupPath, runtimeDir)
+      throw error
+    }
+    return
+  }
+
   for (const fileName of TEMPLATE_FILES) {
     const sourcePath = path.join(bundledDir, fileName)
     const targetPath = path.join(runtimeDir, fileName)
