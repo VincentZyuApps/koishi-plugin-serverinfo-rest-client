@@ -7,6 +7,23 @@ export interface ApiClient {
   getApiBase(): string
 }
 
+export class ApiRequestError extends Error {
+  readonly name = 'ApiRequestError'
+  readonly code?: string
+
+  constructor(
+    readonly status: number,
+    readonly detail: string,
+    readonly responseData: unknown,
+  ) {
+    super(`HTTP ${status}: ${detail}`)
+    this.code = typeof responseData === 'object' && responseData
+      && typeof (responseData as Record<string, unknown>).code === 'string'
+      ? (responseData as Record<string, string>).code
+      : undefined
+  }
+}
+
 export function createApiClient(config: Config, logger: any): ApiClient {
   const baseUrl = config.serverUrl.replace(/\/+$/, '')
   const apiPrefix = config.apiPrefix.startsWith('/') ? config.apiPrefix : `/${config.apiPrefix}`
@@ -78,7 +95,11 @@ export function createApiClient(config: Config, logger: any): ApiClient {
         const detail = typeof data === 'object' && data
           ? data.error || data.warning || data.commandOutput || data.output
           : data
-        throw new Error(`HTTP ${response.status}: ${detail || response.statusText}`)
+        throw new ApiRequestError(
+          response.status,
+          String(detail || response.statusText),
+          data,
+        )
       }
 
       logger.debug('[API] Response:', JSON.stringify(data).substring(0, 200))

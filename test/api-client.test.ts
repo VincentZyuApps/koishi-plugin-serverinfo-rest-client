@@ -98,9 +98,13 @@ describe('createApiClient', () => {
   })
 
   it('surfaces structured HTTP errors', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"error":"denied"}', {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"code":"binding_not_found","error":"denied"}', {
       status: 403, statusText: 'Forbidden',
     })))
-    await expect(createApiClient(config, logger).get('/status')).rejects.toThrow('HTTP 403: denied')
+    await expect(createApiClient(config, logger).get('/status')).rejects.toMatchObject({
+      status: 403,
+      code: 'binding_not_found',
+      detail: 'denied',
+    })
   })
 })

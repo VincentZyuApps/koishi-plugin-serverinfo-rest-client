@@ -68,8 +68,8 @@ export function registerPlayerCommand(ctx: Context, cfg: Config, apiClient: ApiC
         if (cfg.quoteCommandReplies && session.messageId) return h('', [h.quote(session.messageId), ...results])
         return results
       } catch (error) {
-        logger.error(`查询玩家失败: ${error}`)
-        return `❌ 查询玩家失败: ${error instanceof Error ? error.message : String(error)}`
+        logger.error(`获取玩家在线详情失败: ${error}`)
+        return `❌ 获取玩家在线详情失败: ${error instanceof Error ? error.message : String(error)}`
       }
     })
 }

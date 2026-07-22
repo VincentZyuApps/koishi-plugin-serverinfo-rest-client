@@ -39,8 +39,8 @@ function session(isDirect: boolean) {
 describe('whitelist commands', () => {
   it('blocks binding in direct messages when bindGroupOnly is enabled', async () => {
     const { actions, api } = createHarness()
-    const action = actions.get('mcinfo1.绑定白名单 <playerName:text>')!
-    await expect(action({ session: session(true) }, 'Steve')).resolves.toBe('绑定白名单只能在群聊中使用')
+    const action = actions.get('mcinfo1.绑定玩家 <playerName:text>')!
+    await expect(action({ session: session(true) }, 'Steve')).resolves.toBe('绑定玩家只能在群聊中使用')
     expect(api.post).not.toHaveBeenCalled()
   })
 
@@ -49,7 +49,7 @@ describe('whitelist commands', () => {
     api.post.mockResolvedValue({
       binding: { playerName: 'Steve' }, allowlistRetained: true, warning: '',
     })
-    const action = actions.get('mcinfo1.解绑')!
+    const action = actions.get('mcinfo1.解绑玩家')!
     const result = await action({ session: session(true) })
     expect(api.post).toHaveBeenCalledWith('/whitelist/unbind', {
       platform: 'qq', selfId: 'bot-1', userId: 'user-1',
@@ -59,8 +59,8 @@ describe('whitelist commands', () => {
 
   it('can independently restrict unbinding to groups', async () => {
     const { actions, api } = createHarness({ whitelistUnbindGroupOnly: true })
-    const action = actions.get('mcinfo1.解绑')!
-    await expect(action({ session: session(true) })).resolves.toBe('解绑白名单只能在群聊中使用')
+    const action = actions.get('mcinfo1.解绑玩家')!
+    await expect(action({ session: session(true) })).resolves.toBe('解绑玩家只能在群聊中使用')
     expect(api.post).not.toHaveBeenCalled()
   })
 })

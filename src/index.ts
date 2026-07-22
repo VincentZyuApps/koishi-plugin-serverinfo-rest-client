@@ -369,7 +369,7 @@ export async function apply(ctx: Context, cfg: Config) {
   const label = cfg.serverLabel || '【神秘小服服】'
 
   // 注册主指令
-  ctx.command(prefix, `${label} Minecraft BDS 服务器信息查询`)
+  ctx.command(prefix, `🎮 ${label} Minecraft BDS 服务器信息查询`)
     .action(async ({ session }) => {
       return h.text(`🎮 ${label} Minecraft BDS 服务器信息查询
 
@@ -377,9 +377,9 @@ export async function apply(ctx: Context, cfg: Config) {
 • ${commandUsage(prefix, COMMAND_NAMES.health)} - 健康检查
 • ${commandUsage(prefix, COMMAND_NAMES.online)} - 查询服务器在线状态
 • ${commandUsage(prefix, COMMAND_NAMES.history, '[页码]')} - 查询历史玩家
-• ${commandUsage(prefix, COMMAND_NAMES.playerData, '<玩家名>')} - 查询历史游玩与统计数据
-• ${commandUsage(prefix, COMMAND_NAMES.bindWhitelist, '<玩家名>')} - 绑定当前账号白名单
-• ${commandUsage(prefix, COMMAND_NAMES.unbindWhitelist)} - 解除当前账号普通绑定（不撤销管理员直接授权）
+• ${commandUsage(prefix, COMMAND_NAMES.playerData, '[玩家名]')} - 查询自己或指定玩家的历史游玩与统计数据
+• ${commandUsage(prefix, COMMAND_NAMES.bindWhitelist, '<玩家名>')} - 绑定聊天账号与 Xbox 玩家；LeviLamina 服务端启用白名单进服校验时同时授权进服
+• ${commandUsage(prefix, COMMAND_NAMES.unbindWhitelist)} - 解除当前账号的玩家绑定；启用校验时同步处理普通绑定权限
 • ${commandUsage(prefix, COMMAND_NAMES.addWhitelist, '<玩家名>')} - 管理员直接添加白名单
 • ${commandUsage(prefix, COMMAND_NAMES.removeWhitelist, '<玩家名>')} - 管理员移除白名单
 • ${commandUsage(prefix, COMMAND_NAMES.executeCommand, '<命令>')} - 管理员执行 BDS 命令
@@ -388,7 +388,7 @@ export async function apply(ctx: Context, cfg: Config) {
 • ${commandUsage(prefix, COMMAND_NAMES.players)} - 玩家列表
 • ${commandUsage(prefix, COMMAND_NAMES.playersCount)} - 玩家数量
 • ${commandUsage(prefix, COMMAND_NAMES.playersNames)} - 玩家名列表
-• ${commandUsage(prefix, COMMAND_NAMES.player, '<玩家名>')} - 查询指定玩家
+• ${commandUsage(prefix, COMMAND_NAMES.player, '<玩家名>')} - 查询指定在线玩家的实时详情
 
 所有指令支持 --mode (text/image) 参数指定输出模式`)
     })

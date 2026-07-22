@@ -59,9 +59,10 @@ describe('command registration', () => {
     expect(new Set(expected.flatMap(({ aliases }) => aliases)).size).toBe(expected.length)
     Object.values(COMMAND_NAMES).forEach((command, index) => {
       expect(registrations[index].description).toContain(`（alias：${command.alias}）`)
+      expect(registrations[index].description).toContain(command.emoji)
       expect(command.emoji).toBeTruthy()
     })
     expect(commandUsage(prefix, COMMAND_NAMES.player, '<玩家名>'))
-      .toBe('mcinfo1.查询玩家 <玩家名> (player)')
+      .toBe('mcinfo1.玩家在线详情 <玩家名> (online-player)')
   })
 })

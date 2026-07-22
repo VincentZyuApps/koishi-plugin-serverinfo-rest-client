@@ -50,9 +50,9 @@
 | `健康检查` | `health` | `mcinfo1.健康检查` | 查询服务健康状态与运行时间 |
 | `查在线` | `online` | `mcinfo1.查在线` | 查询 TPS、延迟、在线玩家与版本信息 |
 | `历史记录` | `history` | `mcinfo1.历史记录 [页码]` | 分页查询历史玩家 |
-| `查询数据` | `player-data` | `mcinfo1.查询数据 <玩家名>` | 查询指定玩家的历史统计 |
-| `绑定白名单` | `bind-whitelist` | `mcinfo1.绑定白名单 <玩家名>` | 将当前聊天账号绑定到白名单 |
-| `解绑` | `unbind` | `mcinfo1.解绑` | 解除当前聊天账号的普通绑定 |
+| `玩家历史统计` | `player-stats` | `mcinfo1.玩家历史统计 [玩家名]` | 不传玩家名时查询当前账号绑定的玩家，也可查询指定玩家的累计统计 |
+| `绑定玩家` | `bind-player` | `mcinfo1.绑定玩家 <玩家名>` | 绑定聊天账号与 Xbox 玩家；LeviLamina 服务端启用白名单进服校验时同时授权进服 |
+| `解绑玩家` | `unbind-player` | `mcinfo1.解绑玩家` | 解除玩家绑定；服务端启用校验时同步处理普通绑定权限 |
 | `添加白名单` | `add-whitelist` | `mcinfo1.添加白名单 <玩家名>` | 管理员直接添加白名单 |
 | `移除白名单` | `remove-whitelist` | `mcinfo1.移除白名单 <玩家名>` | 管理员移除白名单与本地授权 |
 | `执行命令` | `execute-command` | `mcinfo1.执行命令 <命令>` | 执行受权限控制的 BDS 命令 |
@@ -61,7 +61,7 @@
 | `玩家列表` | `players` | `mcinfo1.玩家列表` | 查询在线玩家详情 |
 | `玩家数量` | `players-count` | `mcinfo1.玩家数量` | 查询在线玩家数量 |
 | `玩家名列表` | `players-names` | `mcinfo1.玩家名列表` | 查询在线玩家名列表 |
-| `查询玩家` | `player` | `mcinfo1.查询玩家 <玩家名>` | 查询指定在线玩家 |
+| `玩家在线详情` | `online-player` | `mcinfo1.玩家在线详情 <玩家名>` | 查询指定在线玩家的实时身份、权限和位置信息 |
 
 例如，`mcinfo1.健康检查` 与 `mcinfo1.health` 调用的是同一个功能。
 
@@ -92,15 +92,18 @@ data/assets/ll-serverinfo-rest-client/runtime/templates-backup-YYYYMMDD-HHmmss
 
 ## 白名单语义
 
-- `指令前缀.绑定白名单 <玩家名>` 将当前聊天账号与一个 Xbox 玩家名建立一对一绑定。默认只允许在群聊执行。
-- `指令前缀.解绑` 只解除当前聊天账号的普通绑定，默认允许在群聊或私聊执行。
-- `指令前缀.解绑` 不会撤销管理员通过 `添加白名单` 建立的直接授权；管理员授权只能由有权限的用户执行 `移除白名单 <玩家名>` 撤销。
+- `指令前缀.绑定玩家 <玩家名>` 将当前聊天账号与一个 Xbox 玩家名建立一对一绑定，供无参数历史统计查询识别当前玩家。默认只允许在群聊执行。
+- 服务端启用白名单进服校验时，`绑定玩家` 同时授予该玩家进服权限；关闭校验时，绑定关系仍可用于自动查询自己的数据。
+- `指令前缀.解绑玩家` 只解除当前聊天账号的玩家绑定，默认允许在群聊或私聊执行。
+- `指令前缀.解绑玩家` 不会撤销管理员通过 `添加白名单` 建立的直接授权；管理员授权只能由有权限的用户执行 `移除白名单 <玩家名>` 撤销。
 - `添加白名单` 与 `移除白名单` 使用独立的 `whitelistManagementAdminList` 权限表，不依赖 Koishi authority。
 - 绑定与授权数据仅保存在对应服务端插件的 `player-data.json`，Koishi 不建立数据库镜像。
+- `玩家历史统计` 不传玩家名时会使用当前聊天账号的绑定；未绑定时会提示先绑定或显式传入玩家名。
+- `玩家历史统计 <玩家名>` 保持公开查询行为，不要求当前聊天账号绑定到该玩家。
 
 相关配置：
 
 - `whitelistBindGroupOnly`：绑定是否仅限群聊，默认 `true`。
-- `whitelistUnbindGroupOnly`：解绑是否仅限群聊，默认 `false`。
-- `whitelistBindingAuthority`：普通绑定和解绑所需的 Koishi 权限等级。
+- `whitelistUnbindGroupOnly`：解绑玩家是否仅限群聊，默认 `false`。
+- `whitelistBindingAuthority`：绑定玩家和解绑玩家所需的 Koishi 权限等级。
 - `whitelistManagementAdminList`：管理员添加、移除白名单的独立权限名单。

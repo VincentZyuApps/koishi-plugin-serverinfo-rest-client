@@ -81,9 +81,9 @@ export const usage = `
     <tr><td><code>mcinfo1.健康检查</code></td><td><code>mcinfo1.health</code></td><td>服务健康状态与运行时间</td></tr>
     <tr><td><code>mcinfo1.查在线</code></td><td><code>mcinfo1.online</code></td><td>TPS、延迟、在线玩家和版本概览</td></tr>
     <tr><td><code>mcinfo1.历史记录 [页码]</code></td><td><code>mcinfo1.history [页码]</code></td><td>分页查询历史玩家</td></tr>
-    <tr><td><code>mcinfo1.查询数据 &lt;玩家名&gt;</code></td><td><code>mcinfo1.player-data &lt;玩家名&gt;</code></td><td>查询历史游玩与统计数据</td></tr>
-    <tr><td><code>mcinfo1.绑定白名单 &lt;玩家名&gt;</code></td><td><code>mcinfo1.bind-whitelist &lt;玩家名&gt;</code></td><td>绑定当前聊天账号白名单</td></tr>
-    <tr><td><code>mcinfo1.解绑</code></td><td><code>mcinfo1.unbind</code></td><td>解除当前账号的普通绑定</td></tr>
+    <tr><td><code>mcinfo1.玩家历史统计 [玩家名]</code></td><td><code>mcinfo1.player-stats [玩家名]</code></td><td>默认查询当前账号绑定的玩家，也可查询指定玩家的累计统计</td></tr>
+    <tr><td><code>mcinfo1.绑定玩家 &lt;玩家名&gt;</code></td><td><code>mcinfo1.bind-player &lt;玩家名&gt;</code></td><td>绑定聊天账号与 Xbox 玩家；LeviLamina 服务端启用白名单进服校验时同时授权进服</td></tr>
+    <tr><td><code>mcinfo1.解绑玩家</code></td><td><code>mcinfo1.unbind-player</code></td><td>解除当前账号的玩家绑定；服务端启用校验时同步处理普通绑定权限</td></tr>
     <tr><td><code>mcinfo1.添加白名单 &lt;玩家名&gt;</code></td><td><code>mcinfo1.add-whitelist &lt;玩家名&gt;</code></td><td>管理员直接添加白名单</td></tr>
     <tr><td><code>mcinfo1.移除白名单 &lt;玩家名&gt;</code></td><td><code>mcinfo1.remove-whitelist &lt;玩家名&gt;</code></td><td>管理员移除白名单与授权</td></tr>
     <tr><td><code>mcinfo1.执行命令 &lt;命令&gt;</code></td><td><code>mcinfo1.execute-command &lt;命令&gt;</code></td><td>执行受权限控制的 BDS 命令</td></tr>
@@ -92,7 +92,7 @@ export const usage = `
     <tr><td><code>mcinfo1.玩家列表</code></td><td><code>mcinfo1.players</code></td><td>查询在线玩家详细资料</td></tr>
     <tr><td><code>mcinfo1.玩家数量</code></td><td><code>mcinfo1.players-count</code></td><td>查询在线玩家数量</td></tr>
     <tr><td><code>mcinfo1.玩家名列表</code></td><td><code>mcinfo1.players-names</code></td><td>只查询在线玩家名列表</td></tr>
-    <tr><td><code>mcinfo1.查询玩家 &lt;玩家名&gt;</code></td><td><code>mcinfo1.player &lt;玩家名&gt;</code></td><td>查询指定在线玩家</td></tr>
+    <tr><td><code>mcinfo1.玩家在线详情 &lt;玩家名&gt;</code></td><td><code>mcinfo1.online-player &lt;玩家名&gt;</code></td><td>查询指定在线玩家的实时详情</td></tr>
   </tbody>
 </table>
 
@@ -104,16 +104,16 @@ export const usage = `
 
 <ul>
   <li><code>token</code> 是只读访问令牌，用于状态、玩家和历史数据等查询接口。</li>
-  <li><code>adminToken</code> 是独立的高权限令牌，用于绑定、解绑、添加、移除白名单和服务端命令接口。</li>
+  <li><code>adminToken</code> 是独立的高权限令牌，用于绑定玩家、解绑玩家、添加白名单、移除白名单和服务端命令接口。</li>
   <li><code>param</code> 通过 URL 参数发送，<code>header</code> 通过 Bearer 请求头发送，<code>both</code> 同时使用两种形式。</li>
   <li>客户端两个发送模式默认都是 <code>header</code>；服务端只读接收模式默认 <code>both</code>，管理接收模式默认 <code>header</code>。</li>
   <li>选择 <code>param</code> 或 <code>both</code> 时 token 会进入 URL，公网环境应使用 HTTPS，并留意代理和访问日志。</li>
   <li>两个令牌应设置为不同的随机值；即使配置了 <code>adminToken</code>，服务端仍可通过自身配置关闭远程命令执行。</li>
-  <li>普通绑定和解绑受 <code>whitelistBindingAuthority</code> 以及群聊限制配置控制。</li>
+  <li>绑定玩家和解绑玩家受 <code>whitelistBindingAuthority</code> 以及群聊限制配置控制。</li>
   <li>管理员白名单操作与命令执行分别使用 <code>whitelistManagementAdminList</code> 和 <code>commandExecutionAdminList</code>，两份权限表相互独立。</li>
 </ul>
 
-<p><code>解绑</code> 只解除当前聊天账号建立的普通绑定，不会撤销管理员通过“添加白名单”建立的直接授权。</p>
+<p><code>解绑玩家</code> 只解除当前聊天账号建立的玩家绑定，不会撤销管理员通过“添加白名单”建立的直接授权。</p>
 </details>
 
 <details>

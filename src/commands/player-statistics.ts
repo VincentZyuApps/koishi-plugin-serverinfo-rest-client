@@ -1,5 +1,5 @@
 import type { Context } from 'koishi'
-import type { ApiClient } from '../api/client'
+import { ApiRequestError, type ApiClient } from '../api/client'
 import type { PlayerStatsResponse } from '../api/types'
 import type { Config } from '../config'
 import { renderTypstTemplate } from '../index'
@@ -13,16 +13,30 @@ export function registerPlayerDataCommand(
   logger: any,
   prefix: string,
 ) {
+  const playerStatsCommand = primaryCommand(prefix, COMMAND_NAMES.playerData)
   ctx.command(
-    `${primaryCommand(prefix, COMMAND_NAMES.playerData)} <playerName:text>`,
-    commandDescription(COMMAND_NAMES.playerData, '查询历史玩家统计数据'),
+    `${playerStatsCommand} [playerName:text]`,
+    commandDescription(COMMAND_NAMES.playerData, '查询自己或指定玩家的历史统计数据'),
   )
     .alias(aliasCommand(prefix, COMMAND_NAMES.playerData))
     .action(async ({ session }, rawPlayerName) => {
-      const playerName = String(rawPlayerName || '').trim()
-      if (!playerName) return `请指定玩家名，例如：${prefix}.查询数据 Steve`
+      const explicitPlayerName = String(rawPlayerName || '').trim()
+      if (!explicitPlayerName && !config.adminToken) {
+        return `尚未配置管理 API 令牌，无法查询当前账号绑定。\n你仍可使用：${playerStatsCommand} <玩家名>`
+      }
       try {
-        const data = await apiClient.get<PlayerStatsResponse>('/players/stats', { name: playerName })
+        let data: PlayerStatsResponse
+        if (explicitPlayerName) {
+          data = await apiClient.get<PlayerStatsResponse>('/players/stats', { name: explicitPlayerName })
+        } else {
+          const selfId = session.selfId || session.bot?.selfId
+          if (!selfId) return '无法识别当前 Bot 的 selfId，请检查适配器会话信息'
+          data = await apiClient.post<PlayerStatsResponse>('/players/stats/bound', {
+            platform: session.platform,
+            selfId,
+            userId: session.userId,
+          }, true)
+        }
         const image = await renderTypstTemplate(ctx, config, logger, 'playerStats', {
           label: config.serverLabel,
           name: data.name,
@@ -40,15 +54,35 @@ export function registerPlayerDataCommand(
           title: `${config.serverLabel} ${COMMAND_NAMES.playerData.emoji} 玩家数据`,
           markdownBody: formatPlayerDataMarkdown(data),
           keyboard: buildCommandKeyboard(config, [
-            { label: '刷新数据', command: `${prefix}.查询数据 ${data.name}`, style: 1 },
+            {
+              label: '刷新数据',
+              command: explicitPlayerName ? `${playerStatsCommand} ${data.name}` : playerStatsCommand,
+              style: 1,
+            },
             { label: '查看在线', command: `${prefix}.查在线` },
           ]),
         }, logger)
       } catch (error) {
-        logger.error(`查询玩家数据失败: ${error}`)
-        return `查询玩家数据失败：${error instanceof Error ? error.message : String(error)}`
+        if (!explicitPlayerName && error instanceof ApiRequestError) {
+          if (error.code === 'binding_not_found') {
+            const bindPlayerCommand = primaryCommand(prefix, COMMAND_NAMES.bindWhitelist)
+            return `你还没有绑定 Xbox 玩家名。\n请先使用：${bindPlayerCommand} <玩家名>\n也可以使用：${playerStatsCommand} <玩家名> 查询指定玩家。`
+          }
+          if (error.code === 'bound_player_stats_not_found') {
+            const playerName = getStringField(error.responseData, 'playerName') || '当前绑定玩家'
+            return `你绑定的玩家 ${playerName} 暂无历史数据。\n该玩家至少需要进入服务器一次后才能产生统计记录。`
+          }
+        }
+        logger.error(`查询玩家历史统计失败: ${error}`)
+        return `查询玩家历史统计失败：${error instanceof Error ? error.message : String(error)}`
       }
     })
+}
+
+function getStringField(value: unknown, key: string): string {
+  if (!value || typeof value !== 'object') return ''
+  const field = (value as Record<string, unknown>)[key]
+  return typeof field === 'string' ? field : ''
 }
 
 function formatPlayerDataText(config: Config, data: PlayerStatsResponse): string {

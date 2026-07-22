@@ -2,10 +2,10 @@ export const COMMAND_NAMES = {
   health: { primary: '健康检查', alias: 'health', emoji: '❤️' },
   online: { primary: '查在线', alias: 'online', emoji: '🌐' },
   history: { primary: '历史记录', alias: 'history', emoji: '📚' },
-  playerData: { primary: '查询数据', alias: 'player-data', emoji: '📊' },
+  playerData: { primary: '玩家历史统计', alias: 'player-stats', emoji: '📊' },
   executeCommand: { primary: '执行命令', alias: 'execute-command', emoji: '🛠️' },
-  bindWhitelist: { primary: '绑定白名单', alias: 'bind-whitelist', emoji: '🔗' },
-  unbindWhitelist: { primary: '解绑', alias: 'unbind', emoji: '🔓' },
+  bindWhitelist: { primary: '绑定玩家', alias: 'bind-player', emoji: '🔗' },
+  unbindWhitelist: { primary: '解绑玩家', alias: 'unbind-player', emoji: '🔓' },
   addWhitelist: { primary: '添加白名单', alias: 'add-whitelist', emoji: '➕' },
   removeWhitelist: { primary: '移除白名单', alias: 'remove-whitelist', emoji: '➖' },
   status: { primary: '服务器状态', alias: 'status', emoji: '📊' },
@@ -13,7 +13,7 @@ export const COMMAND_NAMES = {
   players: { primary: '玩家列表', alias: 'players', emoji: '👥' },
   playersCount: { primary: '玩家数量', alias: 'players-count', emoji: '🔢' },
   playersNames: { primary: '玩家名列表', alias: 'players-names', emoji: '📝' },
-  player: { primary: '查询玩家', alias: 'player', emoji: '👤' },
+  player: { primary: '玩家在线详情', alias: 'online-player', emoji: '👤' },
 } as const
 
 export type CommandName = (typeof COMMAND_NAMES)[keyof typeof COMMAND_NAMES]
@@ -32,5 +32,5 @@ export function commandUsage(prefix: string, command: CommandName, argument = ''
 }
 
 export function commandDescription(command: CommandName, description: string): string {
-  return `${description}（alias：${command.alias}）`
+  return `${command.emoji} ${description}（alias：${command.alias}）`
 }

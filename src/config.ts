@@ -47,11 +47,11 @@ export interface Config extends QQConfig {
   commandExecutionAdminList: PermissionEntry[]
   /** 允许直接添加或移除白名单的聊天账号 */
   whitelistManagementAdminList: PermissionEntry[]
-  /** 绑定白名单所需 Koishi 权限等级 */
+  /** 绑定玩家所需 Koishi 权限等级 */
   whitelistBindingAuthority: number
   /** 白名单绑定是否只允许群聊 */
   whitelistBindGroupOnly: boolean
-  /** 白名单解绑是否只允许群聊 */
+  /** 解绑玩家是否只允许群聊 */
   whitelistUnbindGroupOnly: boolean
 
   // ========== 📤 输出配置 ==========
@@ -165,7 +165,7 @@ export const Config: Schema<Config> = Schema.intersect([
     adminToken: Schema.string()
       .default('')
       .role('secret')
-      .description('🛡️ 管理 API 令牌（执行命令、绑定白名单使用，必须与服务端 adminToken 一致）'),
+      .description('🛡️ 管理 API 令牌（执行命令、绑定玩家和管理白名单使用，必须与服务端 adminToken 一致）'),
     adminTokenSendMode: createTokenSendModeSchema()
       .default('header')
       .description('📤🛡️ 管理 token 发送方式；需要与服务端 adminTokenReceiveMode 兼容，推荐保持 header'),
@@ -277,13 +277,13 @@ export const Config: Schema<Config> = Schema.intersect([
       .max(5)
       .step(1)
       .default(1)
-      .description('🪪 绑定或解绑白名单所需的 Koishi 权限等级'),
+      .description('🪪 绑定玩家或解绑玩家所需的 Koishi 权限等级'),
     whitelistBindGroupOnly: Schema.boolean()
       .default(true)
       .description('👥 白名单绑定是否只允许在群聊中使用'),
     whitelistUnbindGroupOnly: Schema.boolean()
       .default(false)
-      .description('👥 白名单解绑是否只允许在群聊中使用；默认允许私聊解绑'),
+      .description('👥 解绑玩家是否只允许在群聊中使用；默认允许私聊解绑'),
   }).description('🎯 指令细节设置'),
 
   Schema.object({

@@ -12,15 +12,18 @@ export function registerWhitelistCommands(
   logger: any,
   prefix: string,
 ) {
-  ctx.command(`${primaryCommand(prefix, COMMAND_NAMES.bindWhitelist)} <playerName:text>`, commandDescription(COMMAND_NAMES.bindWhitelist, '绑定 Minecraft 白名单'), {
+  const bindPlayerCommand = primaryCommand(prefix, COMMAND_NAMES.bindWhitelist)
+  const unbindPlayerCommand = primaryCommand(prefix, COMMAND_NAMES.unbindWhitelist)
+
+  ctx.command(`${bindPlayerCommand} <playerName:text>`, commandDescription(COMMAND_NAMES.bindWhitelist, '绑定聊天账号与 Xbox 玩家（LeviLamina 服务端启用白名单进服校验时，同时授予进服权限）'), {
     authority: config.whitelistBindingAuthority,
   })
     .alias(aliasCommand(prefix, COMMAND_NAMES.bindWhitelist))
     .action(async ({ session }, rawPlayerName) => {
-      if (config.whitelistBindGroupOnly && session.isDirect) return '绑定白名单只能在群聊中使用'
+      if (config.whitelistBindGroupOnly && session.isDirect) return '绑定玩家只能在群聊中使用'
       const playerName = String(rawPlayerName || '').trim()
-      if (!playerName) return `请提供 Xbox 玩家名，例如：${prefix}.绑定白名单 Steve`
-      if (!config.adminToken) return '尚未配置管理 API 令牌，无法绑定白名单'
+      if (!playerName) return `请提供 Xbox 玩家名，例如：${bindPlayerCommand} Steve`
+      if (!config.adminToken) return '尚未配置管理 API 令牌，无法绑定玩家'
       const selfId = session.selfId || session.bot?.selfId
       if (!selfId) return '无法识别当前 Bot 的 selfId，请检查适配器会话信息'
       try {
@@ -35,18 +38,18 @@ export function registerWhitelistCommands(
         const warning = data.warning ? `\n注意：${data.warning}\n${data.commandOutput}` : ''
         return quoteIfNeeded(session, config, `${state}：${data.binding.playerName}${warning}`)
       } catch (error) {
-        logger.error(`绑定白名单失败: ${error}`)
-        return `绑定白名单失败：${error instanceof Error ? error.message : String(error)}`
+        logger.error(`绑定玩家失败: ${error}`)
+        return `绑定玩家失败：${error instanceof Error ? error.message : String(error)}`
       }
     })
 
-  ctx.command(primaryCommand(prefix, COMMAND_NAMES.unbindWhitelist), commandDescription(COMMAND_NAMES.unbindWhitelist, '解除当前账号的普通白名单绑定（不撤销管理员直接授权）'), {
+  ctx.command(unbindPlayerCommand, commandDescription(COMMAND_NAMES.unbindWhitelist, '解除当前账号的玩家绑定（服务端启用白名单进服校验时同步处理普通绑定权限，不撤销管理员直接授权）'), {
     authority: config.whitelistBindingAuthority,
   })
     .alias(aliasCommand(prefix, COMMAND_NAMES.unbindWhitelist))
     .action(async ({ session }) => {
-      if (config.whitelistUnbindGroupOnly && session.isDirect) return '解绑白名单只能在群聊中使用'
-      if (!config.adminToken) return '尚未配置管理 API 令牌，无法解绑白名单'
+      if (config.whitelistUnbindGroupOnly && session.isDirect) return '解绑玩家只能在群聊中使用'
+      if (!config.adminToken) return '尚未配置管理 API 令牌，无法解绑玩家'
       const selfId = session.selfId || session.bot?.selfId
       if (!selfId) return '无法识别当前 Bot 的 selfId，请检查适配器会话信息'
       try {
@@ -57,10 +60,10 @@ export function registerWhitelistCommands(
         }, true)
         const retained = data.allowlistRetained ? '\n该玩家仍有管理员直接授权，服务器白名单已保留' : ''
         const warning = data.warning ? `\n注意：${data.warning}` : ''
-        return quoteIfNeeded(session, config, `已解除 ${data.binding.playerName} 的白名单绑定${retained}${warning}`)
+        return quoteIfNeeded(session, config, `已解除与 ${data.binding.playerName} 的玩家绑定${retained}${warning}`)
       } catch (error) {
-        logger.error(`解绑白名单失败: ${error}`)
-        return `解绑白名单失败：${error instanceof Error ? error.message : String(error)}`
+        logger.error(`解绑玩家失败: ${error}`)
+        return `解绑玩家失败：${error instanceof Error ? error.message : String(error)}`
       }
     })
 
