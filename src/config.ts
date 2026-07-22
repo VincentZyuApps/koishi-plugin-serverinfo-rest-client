@@ -170,8 +170,8 @@ export const Config: Schema<Config> = Schema.intersect([
       .default('header')
       .description('📤🛡️ 管理 token 发送方式；需要与服务端 adminTokenReceiveMode 兼容，推荐保持 header'),
     apiPrefix: Schema.string()
-      .default('/api/v1')
-      .description('📡 API 前缀'),
+      .default('/api/v2')
+      .description('📡 API v2 前缀；必须与服务端一致'),
     timeout: Schema.number()
       .default(10000)
       .min(1000)
@@ -271,7 +271,7 @@ export const Config: Schema<Config> = Schema.intersect([
       .description('⚡ 执行命令权限名单；userId 精确匹配，platform、channelId、selfId 留空表示不限制'),
     whitelistManagementAdminList: createPermissionListSchema()
       .default([])
-      .description('🛡️ 添加或移除白名单权限名单；与执行命令名单相互独立'),
+      .description('🛡️ 管理员代绑、查询或移除玩家绑定的权限名单；与执行命令名单相互独立'),
     whitelistBindingAuthority: Schema.number()
       .min(0)
       .max(5)

@@ -7,6 +7,7 @@ export const COMMAND_NAMES = {
   bindWhitelist: { primary: '绑定玩家', alias: 'bind-player', emoji: '🔗' },
   unbindWhitelist: { primary: '解绑玩家', alias: 'unbind-player', emoji: '🔓' },
   addWhitelist: { primary: '添加白名单', alias: 'add-whitelist', emoji: '➕' },
+  whitelistBinding: { primary: '查询白名单绑定', alias: 'whitelist-binding', emoji: '🔎' },
   removeWhitelist: { primary: '移除白名单', alias: 'remove-whitelist', emoji: '➖' },
   status: { primary: '服务器状态', alias: 'status', emoji: '📊' },
   server: { primary: '服务器信息', alias: 'server', emoji: '🖥️' },

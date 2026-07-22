@@ -22,6 +22,8 @@
 
 对接 LeviLamina `serverinfo-rest` 服务端，提供服务器状态、历史玩家、玩家统计、远程命令和白名单绑定功能。
 
+当前版本仅支持服务端 API v2，默认前缀为 `/api/v2`，不兼容 API v1。
+
 > 配套 LeviLamina 服务端：[![LeviLamina Plugin](https://img.shields.io/badge/LeviLamina-Plugin-7FA973?style=flat-square&logo=cplusplus&logoColor=white&labelColor=2C5E3B)](https://github.com/VincentZyuApps/levilamina-plugin-serverinfo-rest) [`levilamina-plugin-serverinfo-rest`](https://github.com/VincentZyuApps/levilamina-plugin-serverinfo-rest)，负责在 Minecraft BDS 内提供本插件所需的 HTTP API。
 
 ## Token 发送方式
@@ -52,9 +54,10 @@
 | `历史记录` | `history` | `mcinfo1.历史记录 [页码]` | 分页查询历史玩家 |
 | `玩家历史统计` | `player-stats` | `mcinfo1.玩家历史统计 [玩家名]` | 不传玩家名时查询当前账号绑定的玩家，也可查询指定玩家的累计统计 |
 | `绑定玩家` | `bind-player` | `mcinfo1.绑定玩家 <玩家名>` | 绑定聊天账号与 Xbox 玩家；LeviLamina 服务端启用白名单进服校验时同时授权进服 |
-| `解绑玩家` | `unbind-player` | `mcinfo1.解绑玩家` | 解除玩家绑定；服务端启用校验时同步处理普通绑定权限 |
-| `添加白名单` | `add-whitelist` | `mcinfo1.添加白名单 <玩家名>` | 管理员直接添加白名单 |
-| `移除白名单` | `remove-whitelist` | `mcinfo1.移除白名单 <玩家名>` | 管理员移除白名单与本地授权 |
+| `解绑玩家` | `unbind-player` | `mcinfo1.解绑玩家` | 解除唯一绑定，并移除该玩家的 BDS allowlist 项目 |
+| `添加白名单` | `add-whitelist` | `mcinfo1.添加白名单 <玩家名> <聊天用户> [--force]` | 管理员通过艾特或 userId 代用户绑定；可强制替换冲突 |
+| `查询白名单绑定` | `whitelist-binding` | `mcinfo1.查询白名单绑定 <玩家名>` | 管理员查询玩家绑定状态，用户 ID 默认脱敏 |
+| `移除白名单` | `remove-whitelist` | `mcinfo1.移除白名单 <玩家名>` | 管理员移除唯一绑定与 BDS allowlist 项目 |
 | `执行命令` | `execute-command` | `mcinfo1.执行命令 <命令>` | 执行受权限控制的 BDS 命令 |
 | `服务器状态` | `status` | `mcinfo1.服务器状态` | 查询简要服务器状态 |
 | `服务器信息` | `server` | `mcinfo1.服务器信息` | 查询服务器详细信息 |
@@ -94,10 +97,12 @@ data/assets/ll-serverinfo-rest-client/runtime/templates-backup-YYYYMMDD-HHmmss
 
 - `指令前缀.绑定玩家 <玩家名>` 将当前聊天账号与一个 Xbox 玩家名建立一对一绑定，供无参数历史统计查询识别当前玩家。默认只允许在群聊执行。
 - 服务端启用白名单进服校验时，`绑定玩家` 同时授予该玩家进服权限；关闭校验时，绑定关系仍可用于自动查询自己的数据。
-- `指令前缀.解绑玩家` 只解除当前聊天账号的玩家绑定，默认允许在群聊或私聊执行。
-- `指令前缀.解绑玩家` 不会撤销管理员通过 `添加白名单` 建立的直接授权；管理员授权只能由有权限的用户执行 `移除白名单 <玩家名>` 撤销。
-- `添加白名单` 与 `移除白名单` 使用独立的 `whitelistManagementAdminList` 权限表，不依赖 Koishi authority。
-- 绑定与授权数据仅保存在对应服务端插件的 `player-data.json`，Koishi 不建立数据库镜像。
+- `指令前缀.解绑玩家` 解除当前聊天账号的唯一绑定，并让服务端同步移除该玩家的 BDS allowlist 项目；默认允许在群聊或私聊执行。
+- API v2 只有“已绑定”和“未绑定”两种状态。一个聊天账号只能绑定一个 Xbox 玩家，一个 Xbox 玩家也只能绑定一个聊天账号。
+- `添加白名单 <玩家名> <聊天用户>` 由管理员为当前聊天平台、当前 Bot 下的目标用户创建同一种绑定；目标可使用艾特或纯 userId。
+- 发生用户侧或玩家侧绑定冲突时默认拒绝并返回 `409`；管理员显式使用 `--force` 后会同时替换全部冲突，并移除失去绑定的旧玩家 BDS allowlist 项目。
+- `添加白名单`、`查询白名单绑定` 与 `移除白名单` 使用独立的 `whitelistManagementAdminList` 权限表，不依赖 Koishi authority。
+- 绑定数据仅保存在对应服务端插件的 `player-data.json`，Koishi 不建立数据库镜像。
 - `玩家历史统计` 不传玩家名时会使用当前聊天账号的绑定；未绑定时会提示先绑定或显式传入玩家名。
 - `玩家历史统计 <玩家名>` 保持公开查询行为，不要求当前聊天账号绑定到该玩家。
 

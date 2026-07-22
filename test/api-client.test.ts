@@ -3,7 +3,7 @@ import { createApiClient } from '../src/api/client'
 
 const logger = { debug: vi.fn() }
 const config = {
-  serverUrl: 'https://example.test/', apiPrefix: '/api/v1/', timeout: 1000,
+  serverUrl: 'https://example.test/', apiPrefix: '/api/v2/', timeout: 1000,
   token: 'read-token', tokenSendMode: 'header',
   adminToken: 'admin-token', adminTokenSendMode: 'header',
 } as any
@@ -22,7 +22,7 @@ describe('createApiClient', () => {
 
     expect(client.getBaseUrl()).toBe('https://example.test')
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://example.test/api/v1/players/stats?name=A%20B',
+      'https://example.test/api/v2/players/stats?name=A%20B',
       expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer read-token' }) }),
     )
   })
@@ -32,7 +32,7 @@ describe('createApiClient', () => {
     vi.stubGlobal('fetch', fetchMock)
     await createApiClient(config, logger).post('/whitelist/add', { playerName: 'Steve' }, true)
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://example.test/api/v1/whitelist/add',
+      'https://example.test/api/v2/whitelist/add',
       expect.objectContaining({
         method: 'POST',
         body: '{"playerName":"Steve"}',
@@ -48,7 +48,7 @@ describe('createApiClient', () => {
       .get('/players/stats', { name: 'A B' })
 
     const [url, options] = fetchMock.mock.calls[0]
-    expect(url).toBe('https://example.test/api/v1/players/stats?name=A%20B&token=read-token')
+    expect(url).toBe('https://example.test/api/v2/players/stats?name=A%20B&token=read-token')
     expect(options.headers.Authorization).toBeUndefined()
     expect(logger.debug.mock.calls.flat().join(' ')).toContain('token=***')
     expect(logger.debug.mock.calls.flat().join(' ')).not.toContain('read-token')
@@ -61,7 +61,7 @@ describe('createApiClient', () => {
       .post('/whitelist/add', { playerName: 'Steve' }, true)
 
     const [url, options] = fetchMock.mock.calls[0]
-    expect(url).toBe('https://example.test/api/v1/whitelist/add?token=admin-token')
+    expect(url).toBe('https://example.test/api/v2/whitelist/add?token=admin-token')
     expect(options.headers.Authorization).toBe('Bearer admin-token')
     expect(logger.debug.mock.calls.flat().join(' ')).not.toContain('admin-token')
   })
@@ -72,7 +72,7 @@ describe('createApiClient', () => {
     await createApiClient({ ...config, tokenSendMode: 'both' }, logger).get('/status')
 
     const [url, options] = fetchMock.mock.calls[0]
-    expect(url).toBe('https://example.test/api/v1/status?token=read-token')
+    expect(url).toBe('https://example.test/api/v2/status?token=read-token')
     expect(options.headers.Authorization).toBe('Bearer read-token')
   })
 
@@ -83,7 +83,7 @@ describe('createApiClient', () => {
       .post('/whitelist/remove', { playerName: 'Steve' }, true)
 
     const [url, options] = fetchMock.mock.calls[0]
-    expect(url).toBe('https://example.test/api/v1/whitelist/remove?token=admin-token')
+    expect(url).toBe('https://example.test/api/v2/whitelist/remove?token=admin-token')
     expect(options.headers.Authorization).toBeUndefined()
   })
 
@@ -93,7 +93,7 @@ describe('createApiClient', () => {
     await createApiClient({ ...config, token: '', tokenSendMode: 'both' }, logger).get('/status')
 
     const [url, options] = fetchMock.mock.calls[0]
-    expect(url).toBe('https://example.test/api/v1/status')
+    expect(url).toBe('https://example.test/api/v2/status')
     expect(options.headers.Authorization).toBeUndefined()
   })
 

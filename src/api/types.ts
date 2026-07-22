@@ -117,18 +117,28 @@ export interface WhitelistBinding {
 export interface WhitelistBindingResponse {
   success: boolean
   created?: boolean
+  forced?: boolean
   binding: WhitelistBinding
-  allowlistRetained?: boolean
+  replacedBindings?: Array<WhitelistBinding & {
+    reason?: 'target_user_was_bound' | 'target_player_was_bound'
+  }>
   allowlistUpdated: boolean
   commandOutput: string
   warning?: string
 }
 
-export interface WhitelistManagementResponse {
+export interface WhitelistStateResponse {
   success: boolean
-  created?: boolean
   playerName: string
-  recordRemoved?: boolean
+  bound: boolean
+  binding: WhitelistBinding | null
+}
+
+export interface WhitelistRemovalResponse {
+  success: boolean
+  playerName: string
+  binding: WhitelistBinding
+  recordRemoved: true
   allowlistUpdated: boolean
   commandOutput: string
   warning?: string

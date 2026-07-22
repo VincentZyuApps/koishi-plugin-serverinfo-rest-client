@@ -59,7 +59,7 @@ export const usage = `
 <ol>
   <li>确认 BDS、LeviLamina 和 <code>serverinfo-rest</code> 已启动，健康检查接口可以访问。</li>
   <li>将 <code>serverUrl</code> 填为 HTTP 服务地址，例如 <code>http://127.0.0.1:60202</code>。</li>
-  <li>保持 <code>apiPrefix</code> 与服务端一致，默认是 <code>/api/v1</code>。</li>
+  <li>保持 <code>apiPrefix</code> 与服务端一致，API v2 默认是 <code>/api/v2</code>；本版本不兼容 API v1。</li>
   <li>如服务端启用了只读认证，请填写 <code>token</code>；需要白名单或命令管理时还要填写 <code>adminToken</code>。</li>
   <li><code>tokenSendMode</code> 和 <code>adminTokenSendMode</code> 分别控制两种令牌的发送位置，默认都使用 <code>header</code>。</li>
   <li>按需修改 <code>commandPrefix</code> 和 <code>serverLabel</code>；多个插件实例可以分别使用 <code>mcinfo1</code>、<code>mcinfo2</code>。</li>
@@ -83,9 +83,10 @@ export const usage = `
     <tr><td><code>mcinfo1.历史记录 [页码]</code></td><td><code>mcinfo1.history [页码]</code></td><td>分页查询历史玩家</td></tr>
     <tr><td><code>mcinfo1.玩家历史统计 [玩家名]</code></td><td><code>mcinfo1.player-stats [玩家名]</code></td><td>默认查询当前账号绑定的玩家，也可查询指定玩家的累计统计</td></tr>
     <tr><td><code>mcinfo1.绑定玩家 &lt;玩家名&gt;</code></td><td><code>mcinfo1.bind-player &lt;玩家名&gt;</code></td><td>绑定聊天账号与 Xbox 玩家；LeviLamina 服务端启用白名单进服校验时同时授权进服</td></tr>
-    <tr><td><code>mcinfo1.解绑玩家</code></td><td><code>mcinfo1.unbind-player</code></td><td>解除当前账号的玩家绑定；服务端启用校验时同步处理普通绑定权限</td></tr>
-    <tr><td><code>mcinfo1.添加白名单 &lt;玩家名&gt;</code></td><td><code>mcinfo1.add-whitelist &lt;玩家名&gt;</code></td><td>管理员直接添加白名单</td></tr>
-    <tr><td><code>mcinfo1.移除白名单 &lt;玩家名&gt;</code></td><td><code>mcinfo1.remove-whitelist &lt;玩家名&gt;</code></td><td>管理员移除白名单与授权</td></tr>
+    <tr><td><code>mcinfo1.解绑玩家</code></td><td><code>mcinfo1.unbind-player</code></td><td>解除当前账号的唯一绑定，并移除该玩家的 BDS allowlist 项目</td></tr>
+    <tr><td><code>mcinfo1.添加白名单 &lt;玩家名&gt; &lt;聊天用户&gt; [--force]</code></td><td><code>mcinfo1.add-whitelist &lt;玩家名&gt; &lt;聊天用户&gt; [--force]</code></td><td>管理员通过艾特或 userId 代用户创建绑定；<code>--force</code> 会替换双方冲突绑定</td></tr>
+    <tr><td><code>mcinfo1.查询白名单绑定 &lt;玩家名&gt;</code></td><td><code>mcinfo1.whitelist-binding &lt;玩家名&gt;</code></td><td>管理员查询玩家是否已绑定，用户 ID 默认脱敏显示</td></tr>
+    <tr><td><code>mcinfo1.移除白名单 &lt;玩家名&gt;</code></td><td><code>mcinfo1.remove-whitelist &lt;玩家名&gt;</code></td><td>管理员移除唯一绑定与 BDS allowlist 项目</td></tr>
     <tr><td><code>mcinfo1.执行命令 &lt;命令&gt;</code></td><td><code>mcinfo1.execute-command &lt;命令&gt;</code></td><td>执行受权限控制的 BDS 命令</td></tr>
     <tr><td><code>mcinfo1.服务器状态</code></td><td><code>mcinfo1.status</code></td><td>查询简要服务器状态</td></tr>
     <tr><td><code>mcinfo1.服务器信息</code></td><td><code>mcinfo1.server</code></td><td>查询服务器详细信息</td></tr>
@@ -113,7 +114,7 @@ export const usage = `
   <li>管理员白名单操作与命令执行分别使用 <code>whitelistManagementAdminList</code> 和 <code>commandExecutionAdminList</code>，两份权限表相互独立。</li>
 </ul>
 
-<p><code>解绑玩家</code> 只解除当前聊天账号建立的玩家绑定，不会撤销管理员通过“添加白名单”建立的直接授权。</p>
+<p>API v2 只有“已绑定”和“未绑定”两种状态，不再区分普通绑定与管理员直接授权。每个聊天账号和 Xbox 玩家都只能出现在一条绑定中。</p>
 </details>
 
 <details>

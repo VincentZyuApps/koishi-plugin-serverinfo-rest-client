@@ -379,9 +379,10 @@ export async function apply(ctx: Context, cfg: Config) {
 • ${commandUsage(prefix, COMMAND_NAMES.history, '[页码]')} - 查询历史玩家
 • ${commandUsage(prefix, COMMAND_NAMES.playerData, '[玩家名]')} - 查询自己或指定玩家的历史游玩与统计数据
 • ${commandUsage(prefix, COMMAND_NAMES.bindWhitelist, '<玩家名>')} - 绑定聊天账号与 Xbox 玩家；LeviLamina 服务端启用白名单进服校验时同时授权进服
-• ${commandUsage(prefix, COMMAND_NAMES.unbindWhitelist)} - 解除当前账号的玩家绑定；启用校验时同步处理普通绑定权限
-• ${commandUsage(prefix, COMMAND_NAMES.addWhitelist, '<玩家名>')} - 管理员直接添加白名单
-• ${commandUsage(prefix, COMMAND_NAMES.removeWhitelist, '<玩家名>')} - 管理员移除白名单
+• ${commandUsage(prefix, COMMAND_NAMES.unbindWhitelist)} - 解除当前账号的唯一绑定，并移除该玩家的 BDS allowlist 项目
+• ${commandUsage(prefix, COMMAND_NAMES.addWhitelist, '<玩家名> <聊天用户>')} - 管理员代用户创建绑定；冲突时可使用 --force
+• ${commandUsage(prefix, COMMAND_NAMES.whitelistBinding, '<玩家名>')} - 管理员查询玩家的绑定状态
+• ${commandUsage(prefix, COMMAND_NAMES.removeWhitelist, '<玩家名>')} - 管理员移除玩家绑定与 BDS allowlist 项目
 • ${commandUsage(prefix, COMMAND_NAMES.executeCommand, '<命令>')} - 管理员执行 BDS 命令
 • ${commandUsage(prefix, COMMAND_NAMES.status)} - 服务器状态
 • ${commandUsage(prefix, COMMAND_NAMES.server)} - 服务器详细信息
