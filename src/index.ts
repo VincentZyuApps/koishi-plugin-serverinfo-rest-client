@@ -5,7 +5,7 @@ import { Config, OutputMode } from './config'
 import { createApiClient } from './api/client'
 import { checkAndDownloadFonts, getTypstFontPaths } from './font'
 import { registerExecuteCommand } from './commands/command-execution'
-import { COMMAND_NAMES, commandUsage } from './commands/command-names'
+import { COMMAND_NAMES, commandUsage, resolveCommandScope } from './commands/command-names'
 import { registerHealthCommand } from './commands/health-check'
 import { registerPlayersCountCommand } from './commands/player-count'
 import { registerPlayerCommand } from './commands/player-details'
@@ -365,11 +365,14 @@ export async function apply(ctx: Context, cfg: Config) {
   logger.info(`服务器地址: ${apiClient.getBaseUrl()}`)
   logger.info(`API 地址: ${apiClient.getApiBase()}`)
 
-  const prefix = cfg.commandPrefix || 'mcinfo1'
+  const { rootCommand, featurePrefix: prefix } = resolveCommandScope(cfg.commandPrefix, cfg.useCommandPrefix)
   const label = cfg.serverLabel || '【神秘小服服】'
+  if (!prefix) {
+    logger.warn(`功能指令前缀已关闭，将保留 ${rootCommand} 主指令并注册顶级功能指令；请留意与其他插件的同名指令冲突`)
+  }
 
   // 注册主指令
-  ctx.command(prefix, `🎮 ${label} Minecraft BDS 服务器信息查询`)
+  ctx.command(rootCommand, `🎮 ${label} Minecraft BDS 服务器信息查询`)
     .action(async ({ session }) => {
       return h.text(`🎮 ${label} Minecraft BDS 服务器信息查询
 

@@ -15,8 +15,10 @@ export type TokenSendMode = 'param' | 'header' | 'both'
  */
 export interface Config extends QQConfig {
   // ========== 🏷️ 指令与标识配置 ==========
-  /** 指令前缀 */
+  /** 主指令名称及可选的功能指令前缀 */
   commandPrefix: string
+  /** 是否为功能指令使用前缀 */
+  useCommandPrefix: boolean
   /** 服务器名称标记 */
   serverLabel: string
 
@@ -145,7 +147,10 @@ export const Config: Schema<Config> = Schema.intersect([
   Schema.object({
     commandPrefix: Schema.string()
       .default('mcinfo1')
-      .description('🏷️ 指令前缀（用于区分多实例，如 mcinfo1、mcinfo2）'),
+      .description('🏷️ 主指令名称；useCommandPrefix 开启时也作为功能指令前缀，例如 mcinfo1.健康检查'),
+    useCommandPrefix: Schema.boolean()
+      .default(true)
+      .description('🔗 是否为功能指令添加 commandPrefix 前缀；关闭后仍保留单独的主指令，但健康检查、health 等功能指令将注册为顶级指令，多实例或存在同名指令时建议保持开启'),
     serverLabel: Schema.string()
       .default('【神秘小服服1】')
       .description('🏷️ 服务器名称标记（显示在所有输出的标题中）'),

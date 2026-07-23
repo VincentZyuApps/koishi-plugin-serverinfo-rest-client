@@ -41,6 +41,6 @@ export function createQQConfigSchema(): Schema<QQConfig> {
     qqMarkdownKeyboardJson: Schema.string()
       .role('textarea', { rows: [8, 16] })
       .default(stringifyKeyboard(DEFAULT_QQ_KEYBOARD))
-      .description('⌨️ QQ Keyboard JSON，支持 ${commandPrefix} 和 ${serverLabel} 变量'),
+      .description('⌨️ QQ Keyboard JSON，支持 ${commandPrefix} 和 ${serverLabel} 变量；关闭功能指令前缀时，${commandPrefix}.功能指令会同步移除前缀，单独的 ${commandPrefix} 仍指向主指令'),
   }).description('🤖 QQ Markdown 适配')
 }

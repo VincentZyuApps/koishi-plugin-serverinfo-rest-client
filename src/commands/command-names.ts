@@ -2,7 +2,7 @@ export const COMMAND_NAMES = {
   health: { primary: '健康检查', alias: 'health', emoji: '❤️' },
   online: { primary: '查在线', alias: 'online', emoji: '🌐' },
   history: { primary: '历史记录', alias: 'history', emoji: '📚' },
-  playerData: { primary: '玩家历史统计', alias: 'player-stats', emoji: '📊' },
+  playerData: { primary: '玩家数据统计', alias: 'player-stats', emoji: '📊' },
   executeCommand: { primary: '执行命令', alias: 'execute-command', emoji: '🛠️' },
   bindWhitelist: { primary: '绑定玩家', alias: 'bind-player', emoji: '🔗' },
   unbindWhitelist: { primary: '解绑玩家', alias: 'unbind-player', emoji: '🔓' },
@@ -19,12 +19,31 @@ export const COMMAND_NAMES = {
 
 export type CommandName = (typeof COMMAND_NAMES)[keyof typeof COMMAND_NAMES]
 
+export const DEFAULT_COMMAND_PREFIX = 'mcinfo1'
+
+export interface CommandScope {
+  rootCommand: string
+  featurePrefix: string
+}
+
+export function resolveCommandScope(commandPrefix: string, useCommandPrefix: boolean | undefined): CommandScope {
+  const rootCommand = commandPrefix || DEFAULT_COMMAND_PREFIX
+  return {
+    rootCommand,
+    featurePrefix: useCommandPrefix === false ? '' : rootCommand,
+  }
+}
+
+function scopedCommand(prefix: string, name: string): string {
+  return prefix ? `${prefix}.${name}` : name
+}
+
 export function primaryCommand(prefix: string, command: CommandName): string {
-  return `${prefix}.${command.primary}`
+  return scopedCommand(prefix, command.primary)
 }
 
 export function aliasCommand(prefix: string, command: CommandName): string {
-  return `${prefix}.${command.alias}`
+  return scopedCommand(prefix, command.alias)
 }
 
 export function commandUsage(prefix: string, command: CommandName, argument = ''): string {

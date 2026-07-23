@@ -1,4 +1,5 @@
 import type { Config } from '../config'
+import { resolveCommandScope } from '../commands/command-names'
 import type { QQKeyboard } from './types'
 
 export interface CommandKeyboardButton {
@@ -25,20 +26,23 @@ export const DEFAULT_QQ_KEYBOARD: QQKeyboard = {
 export function buildQQKeyboard(config: Config): QQKeyboard | null {
   if (!config.qqMarkdownKeyboardEnabled) return null
   const source = config.qqMarkdownKeyboardJson || stringifyKeyboard(DEFAULT_QQ_KEYBOARD)
-  const resolved = source
-    .replace(/\$\{commandPrefix\}/g, config.commandPrefix)
-    .replace(/\$\{serverLabel\}/g, config.serverLabel)
+  const resolved = resolveKeyboardTemplate(source, config)
   try {
     const parsed = JSON.parse(resolved)
     if (Array.isArray(parsed?.rows) && parsed.rows.every(row => Array.isArray(row?.buttons))) {
       return parsed
     }
   } catch {}
-  return JSON.parse(
-    stringifyKeyboard(DEFAULT_QQ_KEYBOARD)
-      .replace(/\$\{commandPrefix\}/g, config.commandPrefix)
-      .replace(/\$\{serverLabel\}/g, config.serverLabel),
-  )
+  return JSON.parse(resolveKeyboardTemplate(stringifyKeyboard(DEFAULT_QQ_KEYBOARD), config))
+}
+
+function resolveKeyboardTemplate(source: string, config: Config): string {
+  const { rootCommand, featurePrefix } = resolveCommandScope(config.commandPrefix, config.useCommandPrefix)
+  const featureCommandPrefix = featurePrefix ? `${featurePrefix}.` : ''
+  return source
+    .replace(/\$\{commandPrefix\}\./g, featureCommandPrefix)
+    .replace(/\$\{commandPrefix\}/g, rootCommand)
+    .replace(/\$\{serverLabel\}/g, config.serverLabel)
 }
 
 export function stringifyKeyboard(value: QQKeyboard): string {

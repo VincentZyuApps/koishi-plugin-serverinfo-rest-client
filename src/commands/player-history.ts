@@ -13,8 +13,9 @@ export function registerHistoryCommand(
   logger: any,
   prefix: string,
 ) {
+  const historyCommand = primaryCommand(prefix, COMMAND_NAMES.history)
   ctx.command(
-    `${primaryCommand(prefix, COMMAND_NAMES.history)} [page:number]`,
+    `${historyCommand} [page:number]`,
     commandDescription(COMMAND_NAMES.history, '查询历史玩家记录'),
   )
     .alias(aliasCommand(prefix, COMMAND_NAMES.history))
@@ -40,11 +41,11 @@ export function registerHistoryCommand(
         const text = formatHistoryText(config, data)
         const buttons = []
         if (data.page > 1) {
-          buttons.push({ label: '上一页', command: `${prefix}.历史记录 ${data.page - 1}` })
+          buttons.push({ label: '上一页', command: `${historyCommand} ${data.page - 1}` })
         }
-        buttons.push({ label: '刷新', command: `${prefix}.历史记录 ${data.page}`, style: 1 })
+        buttons.push({ label: '刷新', command: `${historyCommand} ${data.page}`, style: 1 })
         if (data.page < data.pageCount) {
-          buttons.push({ label: '下一页', command: `${prefix}.历史记录 ${data.page + 1}` })
+          buttons.push({ label: '下一页', command: `${historyCommand} ${data.page + 1}` })
         }
         return sendRenderedReply(ctx, session, config, {
           image,

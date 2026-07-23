@@ -14,6 +14,7 @@ export function registerPlayerDataCommand(
   prefix: string,
 ) {
   const playerStatsCommand = primaryCommand(prefix, COMMAND_NAMES.playerData)
+  const onlineCommand = primaryCommand(prefix, COMMAND_NAMES.online)
   ctx.command(
     `${playerStatsCommand} [playerName:text]`,
     commandDescription(COMMAND_NAMES.playerData, '查询自己或指定玩家的历史统计数据'),
@@ -59,7 +60,7 @@ export function registerPlayerDataCommand(
               command: explicitPlayerName ? `${playerStatsCommand} ${data.name}` : playerStatsCommand,
               style: 1,
             },
-            { label: '查看在线', command: `${prefix}.查在线` },
+            { label: '查看在线', command: onlineCommand },
           ]),
         }, logger)
       } catch (error) {
@@ -73,8 +74,8 @@ export function registerPlayerDataCommand(
             return `你绑定的玩家 ${playerName} 暂无历史数据。\n该玩家至少需要进入服务器一次后才能产生统计记录。`
           }
         }
-        logger.error(`查询玩家历史统计失败: ${error}`)
-        return `查询玩家历史统计失败：${error instanceof Error ? error.message : String(error)}`
+        logger.error(`查询玩家数据统计失败: ${error}`)
+        return `查询玩家数据统计失败：${error instanceof Error ? error.message : String(error)}`
       }
     })
 }

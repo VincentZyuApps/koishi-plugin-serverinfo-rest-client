@@ -12,8 +12,9 @@ export function registerExecuteCommand(
   logger: any,
   prefix: string,
 ) {
+  const executeCommand = primaryCommand(prefix, COMMAND_NAMES.executeCommand)
   ctx.command(
-    `${primaryCommand(prefix, COMMAND_NAMES.executeCommand)} <command:text>`,
+    `${executeCommand} <command:text>`,
     commandDescription(COMMAND_NAMES.executeCommand, '执行 BDS 管理命令'),
   )
     .alias(aliasCommand(prefix, COMMAND_NAMES.executeCommand))
@@ -22,7 +23,7 @@ export function registerExecuteCommand(
         return '你不在执行命令权限名单中'
       }
       const command = String(rawCommand || '').trim().replace(/^\//, '')
-      if (!command) return `请提供命令，例如：${prefix}.执行命令 list`
+      if (!command) return `请提供命令，例如：${executeCommand} list`
       if (!config.adminToken) return '尚未配置管理 API 令牌，无法执行命令'
       try {
         const data = await apiClient.post<CommandExecutionResponse>('/admin/command', {

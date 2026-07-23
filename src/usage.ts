@@ -62,7 +62,7 @@ export const usage = `
   <li>保持 <code>apiPrefix</code> 与服务端一致，API v2 默认是 <code>/api/v2</code>；本版本不兼容 API v1。</li>
   <li>如服务端启用了只读认证，请填写 <code>token</code>；需要白名单或命令管理时还要填写 <code>adminToken</code>。</li>
   <li><code>tokenSendMode</code> 和 <code>adminTokenSendMode</code> 分别控制两种令牌的发送位置，默认都使用 <code>header</code>。</li>
-  <li>按需修改 <code>commandPrefix</code> 和 <code>serverLabel</code>；多个插件实例可以分别使用 <code>mcinfo1</code>、<code>mcinfo2</code>。</li>
+  <li>按需修改 <code>commandPrefix</code>、<code>useCommandPrefix</code> 和 <code>serverLabel</code>；多个插件实例可以分别使用 <code>mcinfo1</code>、<code>mcinfo2</code>。</li>
 </ol>
 
 <p>Koishi 与 BDS 不在同一台机器时，请确认服务端监听地址、防火墙和局域网路由允许 Koishi 访问对应端口。管理令牌请只填写在可信环境中，不要发送到群聊或公开日志。</p>
@@ -71,7 +71,8 @@ export const usage = `
 <details>
 <summary><strong>📝 完整指令与英文 alias（点击展开）</strong></summary>
 
-<p>默认前缀为 <code>mcinfo1</code>。中文名称是主指令，英文名称是等价 alias；修改 <code>commandPrefix</code> 后两者会一起变化。</p>
+<p>默认主指令和功能指令前缀均为 <code>mcinfo1</code>。中文名称是主指令，英文名称是等价 alias；修改 <code>commandPrefix</code> 后两者会一起变化。</p>
+<p><code>useCommandPrefix</code> 默认为 <code>true</code>。关闭后仍会保留单独的 <code>commandPrefix</code> 主指令，但功能指令会注册为顶级的 <code>健康检查</code>、<code>health</code> 等名称，不再注册 <code>mcinfo1.健康检查</code> 等带前缀形式。顶级名称可能与其他插件或其他实例冲突，多实例场景建议保持开启。</p>
 
 <table>
   <thead>
@@ -81,7 +82,7 @@ export const usage = `
     <tr><td><code>mcinfo1.健康检查</code></td><td><code>mcinfo1.health</code></td><td>服务健康状态与运行时间</td></tr>
     <tr><td><code>mcinfo1.查在线</code></td><td><code>mcinfo1.online</code></td><td>TPS、延迟、在线玩家和版本概览</td></tr>
     <tr><td><code>mcinfo1.历史记录 [页码]</code></td><td><code>mcinfo1.history [页码]</code></td><td>分页查询历史玩家</td></tr>
-    <tr><td><code>mcinfo1.玩家历史统计 [玩家名]</code></td><td><code>mcinfo1.player-stats [玩家名]</code></td><td>默认查询当前账号绑定的玩家，也可查询指定玩家的累计统计</td></tr>
+    <tr><td><code>mcinfo1.玩家数据统计 [玩家名]</code></td><td><code>mcinfo1.player-stats [玩家名]</code></td><td>默认查询当前账号绑定的玩家，也可查询指定玩家的累计统计</td></tr>
     <tr><td><code>mcinfo1.绑定玩家 &lt;玩家名&gt;</code></td><td><code>mcinfo1.bind-player &lt;玩家名&gt;</code></td><td>绑定聊天账号与 Xbox 玩家；LeviLamina 服务端启用白名单进服校验时同时授权进服</td></tr>
     <tr><td><code>mcinfo1.解绑玩家</code></td><td><code>mcinfo1.unbind-player</code></td><td>解除当前账号的唯一绑定，并移除该玩家的 BDS allowlist 项目</td></tr>
     <tr><td><code>mcinfo1.添加白名单 &lt;玩家名&gt; &lt;聊天用户&gt; [--force]</code></td><td><code>mcinfo1.add-whitelist &lt;玩家名&gt; &lt;聊天用户&gt; [--force]</code></td><td>管理员通过艾特或 userId 代用户创建绑定；<code>--force</code> 会替换双方冲突绑定</td></tr>
@@ -98,6 +99,7 @@ export const usage = `
 </table>
 
 <p>查询类指令可通过 <code>--mode text</code> 或 <code>--mode image</code> 临时指定输出形式。</p>
+<p>关闭 <code>useCommandPrefix</code> 后，表中的中文主指令和英文 alias 均去掉 <code>mcinfo1.</code>，单独的 <code>mcinfo1</code> 仍可查看本插件帮助。</p>
 </details>
 
 <details>

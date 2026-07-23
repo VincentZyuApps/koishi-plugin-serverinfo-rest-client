@@ -32,11 +32,11 @@ const playerStats = {
   moneyAvailable: false,
 }
 
-function createHarness(configOverrides: Record<string, unknown> = {}) {
+function createHarness(configOverrides: Record<string, unknown> = {}, prefix = 'mcinfo1') {
   let action: Function | undefined
   const ctx = {
     command: vi.fn((declaration: string) => {
-      expect(declaration).toBe('mcinfo1.玩家历史统计 [playerName:text]')
+      expect(declaration).toBe(`${prefix ? `${prefix}.` : ''}玩家数据统计 [playerName:text]`)
       const chain: any = {
         alias: vi.fn(() => chain),
         action: vi.fn((handler: Function) => {
@@ -54,7 +54,7 @@ function createHarness(configOverrides: Record<string, unknown> = {}) {
     ...configOverrides,
   } as any
   const logger = { error: vi.fn() }
-  registerPlayerDataCommand(ctx, config, api, logger, 'mcinfo1')
+  registerPlayerDataCommand(ctx, config, api, logger, prefix)
   return { action: action!, api, logger }
 }
 
@@ -105,7 +105,7 @@ describe('player statistics command', () => {
 
     expect(result).toContain('你还没有绑定 Xbox 玩家名')
     expect(result).toContain('mcinfo1.绑定玩家 <玩家名>')
-    expect(result).toContain('mcinfo1.玩家历史统计 <玩家名>')
+    expect(result).toContain('mcinfo1.玩家数据统计 <玩家名>')
   })
 
   it('distinguishes a bound player without historical statistics', async () => {
@@ -119,5 +119,18 @@ describe('player statistics command', () => {
 
     expect(result).toContain('你绑定的玩家 Alex 暂无历史数据')
     expect(result).toContain('至少需要进入服务器一次')
+  })
+
+  it('uses top-level commands in binding guidance when prefixes are disabled', async () => {
+    const { action, api } = createHarness({}, '')
+    api.post.mockRejectedValue(new ApiRequestError(404, 'not bound', {
+      code: 'binding_not_found',
+    }))
+
+    const result = await action({ session })
+
+    expect(result).toContain('请先使用：绑定玩家 <玩家名>')
+    expect(result).toContain('也可以使用：玩家数据统计 <玩家名>')
+    expect(result).not.toContain('mcinfo1.')
   })
 })

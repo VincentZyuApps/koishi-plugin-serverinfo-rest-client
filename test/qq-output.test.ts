@@ -5,13 +5,19 @@ import { formatQQOnlineMarkdown } from '../src/qq/template'
 
 describe('QQ Markdown and keyboard', () => {
   const config = {
-    commandPrefix: 'mcinfo2', serverLabel: '二服', qqMarkdownKeyboardEnabled: true,
+    commandPrefix: 'mcinfo2', useCommandPrefix: true, serverLabel: '二服', qqMarkdownKeyboardEnabled: true,
     qqMarkdownKeyboardJson: '', qqMarkdownMaxPlayers: 2,
   } as any
 
   it('expands the reusable command prefix in keyboard actions', () => {
     const keyboard = buildQQKeyboard(config)!
     expect(keyboard.rows[0].buttons[0].action.data).toBe('mcinfo2.查在线')
+  })
+
+  it('removes feature prefixes while keeping the configured root help command', () => {
+    const keyboard = buildQQKeyboard({ ...config, useCommandPrefix: false })!
+    expect(keyboard.rows[0].buttons[0].action.data).toBe('查在线')
+    expect(keyboard.rows[0].buttons[1].action.data).toBe('mcinfo2 --help')
   })
 
   it('builds public image Markdown and truncates long player lists', () => {
