@@ -1,4 +1,6 @@
 export { applyQQImageServer } from './server'
 export { sendOnlineStatus, sendRenderedReply } from './sender'
 export { buildCommandKeyboard } from './keyboard'
+export { buildQQButtonMenu, BUTTON_MENU_PAGE_COUNT } from './menu'
+export { sendQQMarkdown } from './markdown'
 export { escapeMarkdown } from './template'

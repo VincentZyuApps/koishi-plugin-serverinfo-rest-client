@@ -1,3 +1,4 @@
+import { registerButtonMenuCommand } from './button-menu'
 import { registerExecuteCommand } from './execute-command'
 import { registerHealthCheckCommand } from './health-check'
 import { registerPlayerCountCommand } from './player-count'
@@ -18,6 +19,7 @@ export type { CommandRegistrationContext } from './types'
 
 export function registerCommands(registration: CommandRegistrationContext) {
   registerRootCommand(registration)
+  registerButtonMenuCommand(registration)
   registerHealthCheckCommand(registration)
   registerServerOverviewCommand(registration)
   registerPlayerHistoryCommand(registration)

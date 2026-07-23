@@ -1,4 +1,5 @@
 export const COMMAND_NAMES = {
+  buttonMenu: { primary: '按钮菜单', alias: 'button-menu', emoji: '⌨️' },
   healthCheck: { primary: '健康检查', alias: 'health-check', emoji: '❤️' },
   serverOverview: { primary: '查在线', alias: 'server-overview', emoji: '🌐' },
   playerHistory: { primary: '历史记录', alias: 'player-history', emoji: '📚' },

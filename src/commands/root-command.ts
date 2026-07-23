@@ -7,6 +7,7 @@ export function registerRootCommand({ ctx, rootCommand, prefix, label }: Command
     .action(() => h.text(`🎮 ${label} Minecraft BDS 服务器信息查询
 
 使用以下功能指令查询服务器信息：
+• ${commandUsage(prefix, COMMAND_NAMES.buttonMenu, '[页码]')} - 打开 QQ 平台按钮菜单
 • ${commandUsage(prefix, COMMAND_NAMES.healthCheck)} - 健康检查
 • ${commandUsage(prefix, COMMAND_NAMES.serverOverview)} - 查询服务器在线状态
 • ${commandUsage(prefix, COMMAND_NAMES.playerHistory, '[页码]')} - 查询历史玩家

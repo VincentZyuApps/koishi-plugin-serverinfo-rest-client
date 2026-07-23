@@ -6,6 +6,7 @@ export interface CommandKeyboardButton {
   label: string
   command: string
   style?: number
+  enter?: boolean
 }
 
 export const DEFAULT_QQ_KEYBOARD: QQKeyboard = {
@@ -52,18 +53,20 @@ export function stringifyKeyboard(value: QQKeyboard): string {
 export function buildCommandKeyboard(
   config: Config,
   buttons: CommandKeyboardButton[],
+  columns = 2,
 ): QQKeyboard | null {
   if (!config.qqMarkdownKeyboardEnabled || !buttons.length) return null
+  const columnCount = Math.max(1, Math.min(5, Math.floor(columns)))
   const rows: QQKeyboard['rows'] = []
-  for (let index = 0; index < buttons.length; index += 2) {
+  for (let index = 0; index < buttons.length; index += columnCount) {
     rows.push({
-      buttons: buttons.slice(index, index + 2).map(button => ({
+      buttons: buttons.slice(index, index + columnCount).map(button => ({
         render_data: { label: button.label, style: button.style ?? 0 },
         action: {
           type: 2,
           permission: { type: 2 },
           data: button.command,
-          enter: true,
+          enter: button.enter ?? true,
         },
       })),
     })

@@ -37,10 +37,10 @@ export function createQQConfigSchema(): Schema<QQConfig> {
       .description('👥 QQ Markdown 在线玩家名单最大展示数量'),
     qqMarkdownKeyboardEnabled: Schema.boolean()
       .default(true)
-      .description('⌨️ QQ Markdown 附带刷新和帮助按钮'),
+      .description('⌨️ 是否启用 QQ Markdown 按钮；控制查在线附带键盘和按钮菜单指令'),
     qqMarkdownKeyboardJson: Schema.string()
       .role('textarea', { rows: [8, 16] })
       .default(stringifyKeyboard(DEFAULT_QQ_KEYBOARD))
-      .description('⌨️ QQ Keyboard JSON，支持 ${commandPrefix} 和 ${serverLabel} 变量；关闭功能指令前缀时，${commandPrefix}.功能指令会同步移除前缀，单独的 ${commandPrefix} 仍指向主指令'),
+      .description('⌨️ 查在线回复附带的 QQ Keyboard JSON，支持 ${commandPrefix} 和 ${serverLabel} 变量；按钮菜单使用内置分页布局，不读取此项'),
   }).description('🤖 QQ Markdown 适配')
 }

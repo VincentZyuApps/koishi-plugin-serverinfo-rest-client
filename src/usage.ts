@@ -79,6 +79,7 @@ export const usage = `
     <tr><th>中文主指令</th><th>英文 alias</th><th>用途</th></tr>
   </thead>
   <tbody>
+    <tr><td><code>mcinfo1.按钮菜单 [页码]</code></td><td><code>mcinfo1.button-menu [页码]</code></td><td>QQ 平台两页按钮菜单，页码默认为 1</td></tr>
     <tr><td><code>mcinfo1.健康检查</code></td><td><code>mcinfo1.health-check</code></td><td>服务健康状态与运行时间</td></tr>
     <tr><td><code>mcinfo1.查在线</code></td><td><code>mcinfo1.server-overview</code></td><td>TPS、延迟、在线玩家和版本概览</td></tr>
     <tr><td><code>mcinfo1.历史记录 [页码]</code></td><td><code>mcinfo1.player-history [页码]</code></td><td>分页查询历史玩家</td></tr>
@@ -100,6 +101,8 @@ export const usage = `
 
 <p>查询类指令可通过 <code>--mode text</code> 或 <code>--mode image</code> 临时指定输出形式。</p>
 <p>关闭 <code>useCommandPrefix</code> 后，表中的中文主指令和英文 alias 均去掉 <code>mcinfo1.</code>，单独的 <code>mcinfo1</code> 仍可查看本插件帮助。</p>
+<p><code>按钮菜单 [页码]</code> 仅支持 <code>qq</code> 平台，并要求 QQ Markdown 与按钮功能均已开启。第 1 页以两列四行展示八个服务器与概览入口，第 2 页以两列三行展示六个玩家与账号入口，四条管理员指令不会出现在菜单中。</p>
+<p>两页底部始终保留上一页和下一页；边界红叉按钮仍可点击，并会提示已经位于第一页或最后一页。绑定玩家、玩家在线详情和解绑玩家按钮只填入指令而不自动发送。</p>
 </details>
 
 <details>

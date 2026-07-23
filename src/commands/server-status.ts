@@ -7,16 +7,7 @@ import {
   createTypstFailureOutput,
 } from '../typst'
 import type { CommandRegistrationContext } from './types'
-import path from 'node:path'
-import fs from 'node:fs'
-
-const packageJsonPath = [
-  path.resolve(__dirname, '../package.json'),
-  path.resolve(__dirname, '../../package.json'),
-].find(fs.existsSync)
-if (!packageJsonPath) throw new Error('找不到插件 package.json')
-const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
-const CLIENT_VERSION = pkg.version
+import { CLIENT_VERSION } from '../version'
 
 function formatTextOutput(data: StatusResponse, label: string): string {
   const statusEmoji = data.status === 'online' ? '🟢' : '🔴'
