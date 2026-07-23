@@ -32,7 +32,7 @@ export const DEFAULT_PLAYER_FIELD_FILTERS: readonly PlayerFieldFilter[] = [
   { key: 'isSneaking', enabled: true },
   { key: 'isSprinting', enabled: true },
   { key: 'isMoving', enabled: true },
-  { key: 'isInWater', enabled: true },
+  { key: 'isSwimming', enabled: true },
   { key: 'isInLava', enabled: true },
   { key: 'isOnGround', enabled: true },
   { key: 'isOnFire', enabled: true },

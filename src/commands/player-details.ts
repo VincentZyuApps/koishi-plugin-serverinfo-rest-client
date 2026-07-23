@@ -137,7 +137,7 @@ export function createPlayerDetailSections(player: PlayerResponse, config: Confi
     ['isSneaking', player.isSneaking, '潜行'],
     ['isSprinting', player.isSprinting, '疾跑'],
     ['isMoving', player.isMoving, '移动中'],
-    ['isInWater', player.isInWater, '水中'],
+    ['isSwimming', player.isSwimming, '游泳中'],
     ['isInLava', player.isInLava, '岩浆中'],
     ['isOnGround', player.isOnGround, '着地'],
     ['isOnFire', player.isOnFire, '着火'],

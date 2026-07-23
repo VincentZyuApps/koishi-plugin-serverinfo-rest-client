@@ -31,7 +31,7 @@ const player: PlayerResponse = {
   isSneaking: false,
   isSprinting: false,
   isMoving: true,
-  isInWater: false,
+  isSwimming: false,
   isInLava: false,
   isOnGround: false,
   isOnFire: false,

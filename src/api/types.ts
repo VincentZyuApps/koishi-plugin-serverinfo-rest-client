@@ -87,7 +87,7 @@ export interface PlayerResponse {
   isSneaking: boolean
   isSprinting: boolean
   isMoving: boolean
-  isInWater: boolean
+  isSwimming: boolean
   isInLava: boolean
   isOnGround: boolean
   isOnFire: boolean
