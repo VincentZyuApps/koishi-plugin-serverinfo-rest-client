@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { parseTargetUserId, registerWhitelistCommands } from '../src/commands/whitelist-commands'
+import { parseTargetUserId, registerWhitelistCommands } from '../src/commands/whitelist'
 
 function createHarness(configOverrides: Record<string, unknown> = {}) {
   const actions = new Map<string, Function>()
@@ -28,7 +28,15 @@ function createHarness(configOverrides: Record<string, unknown> = {}) {
     quoteCommandReplies: false,
     ...configOverrides,
   } as any
-  registerWhitelistCommands(ctx, config, api, { error: vi.fn() }, 'mcinfo1')
+  registerWhitelistCommands({
+    ctx,
+    config,
+    apiClient: api,
+    logger: { error: vi.fn() } as any,
+    rootCommand: 'mcinfo1',
+    prefix: 'mcinfo1',
+    label: '测试服',
+  })
   return { actions, api }
 }
 

@@ -1,16 +1,15 @@
-import { Context, h } from 'koishi'
-import { Config } from '../config'
-import type { ApiClient } from '../api/client'
+import { h } from 'koishi'
 import type { ServerResponse } from '../api/types'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
 import {
   resolveOutputModes,
   renderTypstTemplate,
   createTypstFailureOutput,
-} from '../index'
+} from '../typst'
+import type { CommandRegistrationContext } from './types'
 
 function formatTextOutput(data: ServerResponse, label: string): string {
-  return `${label} ${COMMAND_NAMES.server.emoji} 服务器详细信息
+  return `${label} ${COMMAND_NAMES.serverDetails.emoji} 服务器详细信息
 
 📊 状态: ${data.status}
 🌍 存档: ${data.levelName}
@@ -35,29 +34,36 @@ function createTemplatePayload(data: ServerResponse, label: string) {
   }
 }
 
-export function registerServerCommand(ctx: Context, cfg: Config, apiClient: ApiClient, logger: any, prefix: string, label: string) {
-  ctx.command(primaryCommand(prefix, COMMAND_NAMES.server), commandDescription(COMMAND_NAMES.server, '服务器详细信息'))
-    .alias(aliasCommand(prefix, COMMAND_NAMES.server))
+export function registerServerDetailsCommand({
+  ctx,
+  config,
+  apiClient,
+  logger,
+  prefix,
+  label,
+}: CommandRegistrationContext) {
+  ctx.command(primaryCommand(prefix, COMMAND_NAMES.serverDetails), commandDescription(COMMAND_NAMES.serverDetails, '服务器详细信息'))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.serverDetails))
     .option('mode', '-m <mode:string> 输出模式 (text/image)')
     .action(async ({ session, options }) => {
       try {
         const data = await apiClient.get<ServerResponse>('/server')
-        const modes = resolveOutputModes(options.mode, cfg)
+        const modes = resolveOutputModes(options.mode, config)
         const results: h[] = []
         for (const mode of modes) {
           if (mode === 'text') {
             results.push(h.text(formatTextOutput(data, label)))
           } else {
             try {
-              const image = await renderTypstTemplate(ctx, cfg, logger, 'serverInfo', createTemplatePayload(data, label))
+              const image = await renderTypstTemplate(ctx, config, logger, 'serverInfo', createTemplatePayload(data, label))
               results.push(h.image(image, 'image/png'))
             } catch (error) {
-              const fallback = createTypstFailureOutput(error, cfg, modes, formatTextOutput(data, label))
+              const fallback = createTypstFailureOutput(error, config, modes, formatTextOutput(data, label))
               if (fallback) results.push(fallback)
             }
           }
         }
-        if (cfg.quoteCommandReplies && session.messageId) return h('', [h.quote(session.messageId), ...results])
+        if (config.quoteCommandReplies && session.messageId) return h('', [h.quote(session.messageId), ...results])
         return results
       } catch (error) {
         logger.error(`获取服务器详细信息失败: ${error}`)

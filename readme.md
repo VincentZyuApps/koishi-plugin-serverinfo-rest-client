@@ -47,13 +47,13 @@
 
 默认主指令和功能指令前缀均为 `mcinfo1`。中文名称是默认主指令，英文名称通过 alias 提供；修改 `commandPrefix` 后，两种名称的前缀会一起变化。
 
-`useCommandPrefix` 默认为 `true`。设为 `false` 后，单独的 `commandPrefix` 主指令仍会注册，例如 `mcinfo2`；功能指令则改为顶级的 `健康检查`、`health` 等名称，不再注册 `mcinfo2.健康检查`、`mcinfo2.health`。关闭前缀容易与其他插件或其他实例的同名顶级指令冲突，因此多实例场景建议保持开启；插件启动时也会输出冲突风险警告。
+`useCommandPrefix` 默认为 `true`。设为 `false` 后，单独的 `commandPrefix` 主指令仍会注册，例如 `mcinfo2`；功能指令则改为顶级的 `健康检查`、`health-check` 等名称，不再注册 `mcinfo2.健康检查`、`mcinfo2.health-check`。关闭前缀容易与其他插件或其他实例的同名顶级指令冲突，因此多实例场景建议保持开启；插件启动时也会输出冲突风险警告。
 
 | 中文主名称 | 英文 alias | 默认完整指令 | 用途 |
 | --- | --- | --- | --- |
-| `健康检查` | `health` | `mcinfo1.健康检查` | 查询服务健康状态与运行时间 |
-| `查在线` | `online` | `mcinfo1.查在线` | 查询 TPS、延迟、在线玩家与版本信息 |
-| `历史记录` | `history` | `mcinfo1.历史记录 [页码]` | 分页查询历史玩家 |
+| `健康检查` | `health-check` | `mcinfo1.健康检查` | 查询服务健康状态与运行时间 |
+| `查在线` | `server-overview` | `mcinfo1.查在线` | 查询 TPS、延迟、在线玩家与版本信息 |
+| `历史记录` | `player-history` | `mcinfo1.历史记录 [页码]` | 分页查询历史玩家 |
 | `玩家数据统计` | `player-stats` | `mcinfo1.玩家数据统计 [玩家名]` | 不传玩家名时查询当前账号绑定的玩家，也可查询指定玩家的累计统计 |
 | `绑定玩家` | `bind-player` | `mcinfo1.绑定玩家 <玩家名>` | 绑定聊天账号与 Xbox 玩家；服务端启用 BDS allowlist 同步时同时更新进服名单 |
 | `解绑玩家` | `unbind-player` | `mcinfo1.解绑玩家` | 解除唯一绑定；服务端启用同步时同时移除 BDS allowlist 项目 |
@@ -62,15 +62,15 @@
 | `移除白名单` | `remove-whitelist` | `mcinfo1.移除白名单 <玩家名>` | 管理员移除唯一绑定；服务端启用同步时同时移除 BDS allowlist 项目 |
 | `执行命令` | `execute-command` | `mcinfo1.执行命令 <命令>` | 执行受权限控制的 BDS 命令 |
 | `服务器状态` | `server-status` | `mcinfo1.服务器状态` | 查询简要服务器状态 |
-| `服务器信息` | `server` | `mcinfo1.服务器信息` | 查询服务器详细信息 |
-| `玩家列表` | `players` | `mcinfo1.玩家列表` | 查询在线玩家详情 |
-| `玩家数量` | `players-count` | `mcinfo1.玩家数量` | 查询在线玩家数量 |
-| `玩家名列表` | `players-names` | `mcinfo1.玩家名列表` | 查询在线玩家名列表 |
-| `玩家在线详情` | `online-player` | `mcinfo1.玩家在线详情 <玩家名>` | 查询指定在线玩家的实时身份、状态、环境、装备和网络质量 |
+| `服务器信息` | `server-details` | `mcinfo1.服务器信息` | 查询服务器详细信息 |
+| `玩家列表` | `player-list` | `mcinfo1.玩家列表` | 查询在线玩家详情 |
+| `玩家数量` | `player-count` | `mcinfo1.玩家数量` | 查询在线玩家数量 |
+| `玩家名列表` | `player-names` | `mcinfo1.玩家名列表` | 查询在线玩家名列表 |
+| `玩家在线详情` | `player-details` | `mcinfo1.玩家在线详情 <玩家名>` | 查询指定在线玩家的实时身份、状态、环境、装备和网络质量 |
 
-例如，`mcinfo1.健康检查` 与 `mcinfo1.health` 调用的是同一个功能。
+例如，`mcinfo1.健康检查` 与 `mcinfo1.health-check` 调用的是同一个功能。
 
-关闭 `useCommandPrefix` 后，对应写法为 `健康检查` 与 `health`，而 `mcinfo1` 仍可用于查看本插件的指令帮助。
+关闭 `useCommandPrefix` 后，对应写法为 `健康检查` 与 `health-check`，而 `mcinfo1` 仍可用于查看本插件的指令帮助。
 
 ## 玩家在线详情字段
 

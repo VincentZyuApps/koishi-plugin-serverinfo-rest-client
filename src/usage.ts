@@ -72,16 +72,16 @@ export const usage = `
 <summary><strong>📝 完整指令与英文 alias（点击展开）</strong></summary>
 
 <p>默认主指令和功能指令前缀均为 <code>mcinfo1</code>。中文名称是主指令，英文名称是等价 alias；修改 <code>commandPrefix</code> 后两者会一起变化。</p>
-<p><code>useCommandPrefix</code> 默认为 <code>true</code>。关闭后仍会保留单独的 <code>commandPrefix</code> 主指令，但功能指令会注册为顶级的 <code>健康检查</code>、<code>health</code> 等名称，不再注册 <code>mcinfo1.健康检查</code> 等带前缀形式。顶级名称可能与其他插件或其他实例冲突，多实例场景建议保持开启。</p>
+<p><code>useCommandPrefix</code> 默认为 <code>true</code>。关闭后仍会保留单独的 <code>commandPrefix</code> 主指令，但功能指令会注册为顶级的 <code>健康检查</code>、<code>health-check</code> 等名称，不再注册 <code>mcinfo1.健康检查</code> 等带前缀形式。顶级名称可能与其他插件或其他实例冲突，多实例场景建议保持开启。</p>
 
 <table>
   <thead>
     <tr><th>中文主指令</th><th>英文 alias</th><th>用途</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>mcinfo1.健康检查</code></td><td><code>mcinfo1.health</code></td><td>服务健康状态与运行时间</td></tr>
-    <tr><td><code>mcinfo1.查在线</code></td><td><code>mcinfo1.online</code></td><td>TPS、延迟、在线玩家和版本概览</td></tr>
-    <tr><td><code>mcinfo1.历史记录 [页码]</code></td><td><code>mcinfo1.history [页码]</code></td><td>分页查询历史玩家</td></tr>
+    <tr><td><code>mcinfo1.健康检查</code></td><td><code>mcinfo1.health-check</code></td><td>服务健康状态与运行时间</td></tr>
+    <tr><td><code>mcinfo1.查在线</code></td><td><code>mcinfo1.server-overview</code></td><td>TPS、延迟、在线玩家和版本概览</td></tr>
+    <tr><td><code>mcinfo1.历史记录 [页码]</code></td><td><code>mcinfo1.player-history [页码]</code></td><td>分页查询历史玩家</td></tr>
     <tr><td><code>mcinfo1.玩家数据统计 [玩家名]</code></td><td><code>mcinfo1.player-stats [玩家名]</code></td><td>默认查询当前账号绑定的玩家，也可查询指定玩家的累计统计</td></tr>
     <tr><td><code>mcinfo1.绑定玩家 &lt;玩家名&gt;</code></td><td><code>mcinfo1.bind-player &lt;玩家名&gt;</code></td><td>绑定聊天账号与 Xbox 玩家；服务端启用 BDS allowlist 同步时同时更新进服名单</td></tr>
     <tr><td><code>mcinfo1.解绑玩家</code></td><td><code>mcinfo1.unbind-player</code></td><td>解除当前账号的唯一绑定；服务端启用同步时同时移除 BDS allowlist 项目</td></tr>
@@ -90,11 +90,11 @@ export const usage = `
     <tr><td><code>mcinfo1.移除白名单 &lt;玩家名&gt;</code></td><td><code>mcinfo1.remove-whitelist &lt;玩家名&gt;</code></td><td>管理员移除唯一绑定；服务端启用同步时同时移除 BDS allowlist 项目</td></tr>
     <tr><td><code>mcinfo1.执行命令 &lt;命令&gt;</code></td><td><code>mcinfo1.execute-command &lt;命令&gt;</code></td><td>执行受权限控制的 BDS 命令</td></tr>
     <tr><td><code>mcinfo1.服务器状态</code></td><td><code>mcinfo1.server-status</code></td><td>查询简要服务器状态</td></tr>
-    <tr><td><code>mcinfo1.服务器信息</code></td><td><code>mcinfo1.server</code></td><td>查询服务器详细信息</td></tr>
-    <tr><td><code>mcinfo1.玩家列表</code></td><td><code>mcinfo1.players</code></td><td>查询在线玩家详细资料</td></tr>
-    <tr><td><code>mcinfo1.玩家数量</code></td><td><code>mcinfo1.players-count</code></td><td>查询在线玩家数量</td></tr>
-    <tr><td><code>mcinfo1.玩家名列表</code></td><td><code>mcinfo1.players-names</code></td><td>只查询在线玩家名列表</td></tr>
-    <tr><td><code>mcinfo1.玩家在线详情 &lt;玩家名&gt;</code></td><td><code>mcinfo1.online-player &lt;玩家名&gt;</code></td><td>查询实时身份、状态、环境、装备和网络质量</td></tr>
+    <tr><td><code>mcinfo1.服务器信息</code></td><td><code>mcinfo1.server-details</code></td><td>查询服务器详细信息</td></tr>
+    <tr><td><code>mcinfo1.玩家列表</code></td><td><code>mcinfo1.player-list</code></td><td>查询在线玩家详细资料</td></tr>
+    <tr><td><code>mcinfo1.玩家数量</code></td><td><code>mcinfo1.player-count</code></td><td>查询在线玩家数量</td></tr>
+    <tr><td><code>mcinfo1.玩家名列表</code></td><td><code>mcinfo1.player-names</code></td><td>只查询在线玩家名列表</td></tr>
+    <tr><td><code>mcinfo1.玩家在线详情 &lt;玩家名&gt;</code></td><td><code>mcinfo1.player-details &lt;玩家名&gt;</code></td><td>查询实时身份、状态、环境、装备和网络质量</td></tr>
   </tbody>
 </table>
 

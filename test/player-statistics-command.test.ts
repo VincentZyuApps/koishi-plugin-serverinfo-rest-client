@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   sendRenderedReply: vi.fn(),
 }))
 
-vi.mock('../src/index', () => ({
+vi.mock('../src/typst', () => ({
   renderTypstTemplate: mocks.renderTypstTemplate,
 }))
 
@@ -16,7 +16,7 @@ vi.mock('../src/qq', () => ({
   sendRenderedReply: mocks.sendRenderedReply,
 }))
 
-import { registerPlayerDataCommand } from '../src/commands/player-statistics'
+import { registerPlayerStatisticsCommand } from '../src/commands/player-statistics'
 
 const playerStats = {
   xuid: 'xuid-1',
@@ -54,7 +54,15 @@ function createHarness(configOverrides: Record<string, unknown> = {}, prefix = '
     ...configOverrides,
   } as any
   const logger = { error: vi.fn() }
-  registerPlayerDataCommand(ctx, config, api, logger, prefix)
+  registerPlayerStatisticsCommand({
+    ctx,
+    config,
+    apiClient: api,
+    logger: logger as any,
+    rootCommand: prefix || 'mcinfo1',
+    prefix,
+    label: config.serverLabel,
+  })
   return { action: action!, api, logger }
 }
 

@@ -6,13 +6,13 @@ const mocks = vi.hoisted(() => ({
   renderTypstTemplate: vi.fn(),
 }))
 
-vi.mock('../src/index', () => ({
+vi.mock('../src/typst', () => ({
   resolveOutputModes: () => ['text'],
   renderTypstTemplate: mocks.renderTypstTemplate,
   createTypstFailureOutput: vi.fn(),
 }))
 
-import { createPlayerDetailSections, registerPlayerCommand } from '../src/commands/player-details'
+import { createPlayerDetailSections, registerPlayerDetailsCommand } from '../src/commands/player-details'
 
 const player: PlayerResponse = {
   name: 'Steve',
@@ -155,7 +155,15 @@ describe('player online details', () => {
       }),
     } as any
     const api = { get: vi.fn().mockResolvedValue(player) } as any
-    registerPlayerCommand(ctx, createConfig(), api, { error: vi.fn() }, 'mcinfo1', '测试服')
+    registerPlayerDetailsCommand({
+      ctx,
+      config: createConfig(),
+      apiClient: api,
+      logger: { error: vi.fn() } as any,
+      rootCommand: 'mcinfo1',
+      prefix: 'mcinfo1',
+      label: '测试服',
+    })
 
     const result = await action!({ session: {}, options: {} }, 'Steve')
 

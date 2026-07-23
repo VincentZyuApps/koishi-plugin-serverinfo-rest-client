@@ -1,25 +1,25 @@
-import type { Context } from 'koishi'
-import { ApiRequestError, type ApiClient } from '../api/client'
+import { ApiRequestError } from '../api/client'
 import type { PlayerStatsResponse } from '../api/types'
 import type { Config } from '../config'
-import { renderTypstTemplate } from '../index'
+import { renderTypstTemplate } from '../typst'
 import { buildCommandKeyboard, escapeMarkdown, sendRenderedReply } from '../qq'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
+import type { CommandRegistrationContext } from './types'
 
-export function registerPlayerDataCommand(
-  ctx: Context,
-  config: Config,
-  apiClient: ApiClient,
-  logger: any,
-  prefix: string,
-) {
-  const playerStatsCommand = primaryCommand(prefix, COMMAND_NAMES.playerData)
-  const onlineCommand = primaryCommand(prefix, COMMAND_NAMES.online)
+export function registerPlayerStatisticsCommand({
+  ctx,
+  config,
+  apiClient,
+  logger,
+  prefix,
+}: CommandRegistrationContext) {
+  const playerStatsCommand = primaryCommand(prefix, COMMAND_NAMES.playerStatistics)
+  const onlineCommand = primaryCommand(prefix, COMMAND_NAMES.serverOverview)
   ctx.command(
     `${playerStatsCommand} [playerName:text]`,
-    commandDescription(COMMAND_NAMES.playerData, '查询自己或指定玩家的历史统计数据'),
+    commandDescription(COMMAND_NAMES.playerStatistics, '查询自己或指定玩家的历史统计数据'),
   )
-    .alias(aliasCommand(prefix, COMMAND_NAMES.playerData))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.playerStatistics))
     .action(async ({ session }, rawPlayerName) => {
       const explicitPlayerName = String(rawPlayerName || '').trim()
       if (!explicitPlayerName && !config.adminToken) {
@@ -52,7 +52,7 @@ export function registerPlayerDataCommand(
         return sendRenderedReply(ctx, session, config, {
           image,
           text: formatPlayerDataText(config, data),
-          title: `${config.serverLabel} ${COMMAND_NAMES.playerData.emoji} 玩家数据`,
+          title: `${config.serverLabel} ${COMMAND_NAMES.playerStatistics.emoji} 玩家数据`,
           markdownBody: formatPlayerDataMarkdown(data),
           keyboard: buildCommandKeyboard(config, [
             {
@@ -66,7 +66,7 @@ export function registerPlayerDataCommand(
       } catch (error) {
         if (!explicitPlayerName && error instanceof ApiRequestError) {
           if (error.code === 'binding_not_found') {
-            const bindPlayerCommand = primaryCommand(prefix, COMMAND_NAMES.bindWhitelist)
+            const bindPlayerCommand = primaryCommand(prefix, COMMAND_NAMES.bindPlayer)
             return `你还没有绑定 Xbox 玩家名。\n请先使用：${bindPlayerCommand} <玩家名>\n也可以使用：${playerStatsCommand} <玩家名> 查询指定玩家。`
           }
           if (error.code === 'bound_player_stats_not_found') {
@@ -87,7 +87,7 @@ function getStringField(value: unknown, key: string): string {
 }
 
 function formatPlayerDataText(config: Config, data: PlayerStatsResponse): string {
-  return `${config.serverLabel} ${COMMAND_NAMES.playerData.emoji} 玩家数据：${data.name}\n玩家 ID：${data.xuid}\n历史游玩时间：${formatDuration(data.totalPlayMs)}\n挖掘方块总数：${formatInteger(data.blocksMined)}\n击杀生物总数：${formatInteger(data.mobsKilled)}`
+  return `${config.serverLabel} ${COMMAND_NAMES.playerStatistics.emoji} 玩家数据：${data.name}\n玩家 ID：${data.xuid}\n历史游玩时间：${formatDuration(data.totalPlayMs)}\n挖掘方块总数：${formatInteger(data.blocksMined)}\n击杀生物总数：${formatInteger(data.mobsKilled)}`
 }
 
 function formatPlayerDataMarkdown(data: PlayerStatsResponse): string {

@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-ll-serverinfo-rest-client",
   "description": "🎮 Minecraft BDS 服务器信息查询，🔌 对接 LeviLamina serverinfo-rest Minecraft 基岩版服务端插件，调用服务端的Http API，支持服务器状态、玩家统计、白名单等等操作 📊",
-  "version": "0.3.2-beta.2+20260724",
+  "version": "0.3.3-beta.3+20260724",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [

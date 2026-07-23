@@ -1,17 +1,16 @@
-import { h, type Context } from 'koishi'
-import type { ApiClient } from '../api/client'
+import { h } from 'koishi'
 import type { CommandExecutionResponse } from '../api/types'
-import type { Config } from '../config'
 import { hasPermission } from '../permissions'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
+import type { CommandRegistrationContext } from './types'
 
-export function registerExecuteCommand(
-  ctx: Context,
-  config: Config,
-  apiClient: ApiClient,
-  logger: any,
-  prefix: string,
-) {
+export function registerExecuteCommand({
+  ctx,
+  config,
+  apiClient,
+  logger,
+  prefix,
+}: CommandRegistrationContext) {
   const executeCommand = primaryCommand(prefix, COMMAND_NAMES.executeCommand)
   ctx.command(
     `${executeCommand} <command:text>`,

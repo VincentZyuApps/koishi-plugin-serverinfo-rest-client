@@ -1,35 +1,34 @@
-import { Context, h } from 'koishi'
-import { Config } from '../config'
-import type { ApiClient } from '../api/client'
+import { h } from 'koishi'
 import type { PlayersCountResponse } from '../api/types'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
 import {
   resolveOutputModes,
   renderTypstTemplate,
   createTypstFailureOutput,
-} from '../index'
+} from '../typst'
+import type { CommandRegistrationContext } from './types'
 
 function formatTextOutput(data: PlayersCountResponse, label: string): string {
-  return `${label} ${COMMAND_NAMES.playersCount.emoji} 玩家数量
+  return `${label} ${COMMAND_NAMES.playerCount.emoji} 玩家数量
 
 👥 当前在线: ${data.count} 人`
 }
 
-export function registerPlayersCountCommand(
-  ctx: Context,
-  cfg: Config,
-  apiClient: ApiClient,
-  logger: any,
-  prefix: string,
-  label: string
-) {
-  ctx.command(primaryCommand(prefix, COMMAND_NAMES.playersCount), commandDescription(COMMAND_NAMES.playersCount, '玩家数量'))
-    .alias(aliasCommand(prefix, COMMAND_NAMES.playersCount))
+export function registerPlayerCountCommand({
+  ctx,
+  config,
+  apiClient,
+  logger,
+  prefix,
+  label,
+}: CommandRegistrationContext) {
+  ctx.command(primaryCommand(prefix, COMMAND_NAMES.playerCount), commandDescription(COMMAND_NAMES.playerCount, '玩家数量'))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.playerCount))
     .option('mode', '-m <mode:string> 输出模式 (text/image)')
     .action(async ({ session, options }) => {
       try {
         const data = await apiClient.get<PlayersCountResponse>('/players/count')
-        const modes = resolveOutputModes(options.mode, cfg)
+        const modes = resolveOutputModes(options.mode, config)
 
         const results: h[] = []
 
@@ -38,7 +37,7 @@ export function registerPlayersCountCommand(
             results.push(h.text(formatTextOutput(data, label)))
           } else if (mode === 'typst-image') {
             try {
-              const pngBuffer = await renderTypstTemplate(ctx, cfg, logger, 'playersCount', {
+              const pngBuffer = await renderTypstTemplate(ctx, config, logger, 'playersCount', {
                 label,
                 count: data.count,
                 generated_at: new Date().toLocaleString('zh-CN'),
@@ -46,13 +45,13 @@ export function registerPlayersCountCommand(
               results.push(h.image(pngBuffer, 'image/png'))
             } catch (err) {
               logger.warn(`Typst 渲染失败: ${err}`)
-              const fallback = createTypstFailureOutput(err, cfg, modes, formatTextOutput(data, label))
+              const fallback = createTypstFailureOutput(err, config, modes, formatTextOutput(data, label))
               if (fallback) results.push(fallback)
             }
           }
         }
 
-        if (cfg.quoteCommandReplies && session.messageId) {
+        if (config.quoteCommandReplies && session.messageId) {
           return h('', [h.quote(session.messageId), ...results])
         }
         return results

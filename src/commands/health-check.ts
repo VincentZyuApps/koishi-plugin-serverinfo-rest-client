@@ -1,17 +1,16 @@
-import { Context, h } from 'koishi'
-import { Config } from '../config'
-import type { ApiClient } from '../api/client'
+import { h } from 'koishi'
 import type { HealthResponse } from '../api/types'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
+import { formatTimestamp } from './command-formatters'
 import {
   resolveOutputModes,
-  formatTimestamp,
   renderTypstTemplate,
   createTypstFailureOutput,
-} from '../index'
+} from '../typst'
+import type { CommandRegistrationContext } from './types'
 
 function formatTextOutput(data: HealthResponse, label: string): string {
-  return `${label} ${COMMAND_NAMES.health.emoji} 健康检查
+  return `${label} ${COMMAND_NAMES.healthCheck.emoji} 健康检查
 
 📊 状态: ${data.status === 'healthy' ? '✅ 健康' : '❌ 异常'}
 ⏰ 时间戳: ${formatTimestamp(data.timestamp)}
@@ -47,21 +46,21 @@ function createTemplatePayload(data: HealthResponse, label: string) {
   }
 }
 
-export function registerHealthCommand(
-  ctx: Context,
-  cfg: Config,
-  apiClient: ApiClient,
-  logger: any,
-  prefix: string,
-  label: string
-) {
-  ctx.command(primaryCommand(prefix, COMMAND_NAMES.health), commandDescription(COMMAND_NAMES.health, '健康检查'))
-    .alias(aliasCommand(prefix, COMMAND_NAMES.health))
+export function registerHealthCheckCommand({
+  ctx,
+  config,
+  apiClient,
+  logger,
+  prefix,
+  label,
+}: CommandRegistrationContext) {
+  ctx.command(primaryCommand(prefix, COMMAND_NAMES.healthCheck), commandDescription(COMMAND_NAMES.healthCheck, '健康检查'))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.healthCheck))
     .option('mode', '-m <mode:string> 输出模式 (text/image)')
     .action(async ({ session, options }) => {
       try {
         const data = await apiClient.get<HealthResponse>('/health')
-        const modes = resolveOutputModes(options.mode, cfg)
+        const modes = resolveOutputModes(options.mode, config)
 
         const results: h[] = []
 
@@ -72,7 +71,7 @@ export function registerHealthCommand(
             try {
               const pngBuffer = await renderTypstTemplate(
                 ctx,
-                cfg,
+                config,
                 logger,
                 'healthStatus',
                 createTemplatePayload(data, label),
@@ -80,13 +79,13 @@ export function registerHealthCommand(
               results.push(h.image(pngBuffer, 'image/png'))
             } catch (err) {
               logger.warn(`Typst 渲染失败: ${err}`)
-              const fallback = createTypstFailureOutput(err, cfg, modes, formatTextOutput(data, label))
+              const fallback = createTypstFailureOutput(err, config, modes, formatTextOutput(data, label))
               if (fallback) results.push(fallback)
             }
           }
         }
 
-        if (cfg.quoteCommandReplies && session.messageId) {
+        if (config.quoteCommandReplies && session.messageId) {
           return h('', [h.quote(session.messageId), ...results])
         }
         return results

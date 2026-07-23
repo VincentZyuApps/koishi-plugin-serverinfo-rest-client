@@ -1,11 +1,11 @@
 import type { Context } from 'koishi'
 import type { Config } from '../config'
-import type { ApiClient } from '../api/client'
 import type { OverviewResponse } from '../api/types'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
 import type { OnlineStatusResult } from '../types'
-import { renderTypstTemplate } from '../index'
+import { renderTypstTemplate } from '../typst'
 import { sendOnlineStatus } from '../qq'
+import type { CommandRegistrationContext } from './types'
 
 function createTemplatePayload(config: Config, result: OnlineStatusResult) {
   const overview = result.overview
@@ -44,15 +44,15 @@ async function renderOnlineStatus(
   return renderTypstTemplate(ctx, config, logger, 'onlineStatus', createTemplatePayload(config, result))
 }
 
-export function registerOnlineCommand(
-  ctx: Context,
-  config: Config,
-  apiClient: ApiClient,
-  logger: any,
-  prefix: string,
-) {
-  ctx.command(primaryCommand(prefix, COMMAND_NAMES.online), commandDescription(COMMAND_NAMES.online, '查询服务器在线状态'))
-    .alias(aliasCommand(prefix, COMMAND_NAMES.online))
+export function registerServerOverviewCommand({
+  ctx,
+  config,
+  apiClient,
+  logger,
+  prefix,
+}: CommandRegistrationContext) {
+  ctx.command(primaryCommand(prefix, COMMAND_NAMES.serverOverview), commandDescription(COMMAND_NAMES.serverOverview, '查询服务器在线状态'))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.serverOverview))
     .action(async ({ session }) => {
       const startedAt = Date.now()
       let result: OnlineStatusResult

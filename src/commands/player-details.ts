@@ -1,13 +1,13 @@
-import { Context, h } from 'koishi'
-import { Config, DEFAULT_PLAYER_FIELD_FILTERS } from '../config'
-import type { ApiClient } from '../api/client'
+import { h } from 'koishi'
+import { DEFAULT_PLAYER_FIELD_FILTERS, type Config } from '../config'
 import type { PlayerBlockPosition, PlayerItem, PlayerPosition, PlayerResponse } from '../api/types'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
 import {
   resolveOutputModes,
   renderTypstTemplate,
   createTypstFailureOutput,
-} from '../index'
+} from '../typst'
+import type { CommandRegistrationContext } from './types'
 
 interface PlayerDetailRow {
   label: string
@@ -293,33 +293,40 @@ function createTemplatePayload(player: PlayerResponse, config: Config, label: st
   }
 }
 
-export function registerPlayerCommand(ctx: Context, cfg: Config, apiClient: ApiClient, logger: any, prefix: string, label: string) {
+export function registerPlayerDetailsCommand({
+  ctx,
+  config,
+  apiClient,
+  logger,
+  prefix,
+  label,
+}: CommandRegistrationContext) {
   ctx.command(
-    `${primaryCommand(prefix, COMMAND_NAMES.player)} <name:string>`,
-    commandDescription(COMMAND_NAMES.player, '查询指定在线玩家的实时状态与详情'),
+    `${primaryCommand(prefix, COMMAND_NAMES.playerDetails)} <name:string>`,
+    commandDescription(COMMAND_NAMES.playerDetails, '查询指定在线玩家的实时状态与详情'),
   )
-    .alias(aliasCommand(prefix, COMMAND_NAMES.player))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.playerDetails))
     .option('mode', '-m <mode:string> 输出模式 (text/image)')
     .action(async ({ session, options }, name) => {
-      if (!name) return `❌ 请指定玩家名称，例如: ${primaryCommand(prefix, COMMAND_NAMES.player)} Steve`
+      if (!name) return `❌ 请指定玩家名称，例如: ${primaryCommand(prefix, COMMAND_NAMES.playerDetails)} Steve`
       try {
         const data = await apiClient.get<PlayerResponse>('/player', { name })
-        const modes = resolveOutputModes(options.mode, cfg)
+        const modes = resolveOutputModes(options.mode, config)
         const results: h[] = []
         for (const mode of modes) {
           if (mode === 'text') {
-            results.push(h.text(formatTextOutput(data, cfg, label)))
+            results.push(h.text(formatTextOutput(data, config, label)))
           } else {
             try {
-              const image = await renderTypstTemplate(ctx, cfg, logger, 'playerDetail', createTemplatePayload(data, cfg, label))
+              const image = await renderTypstTemplate(ctx, config, logger, 'playerDetail', createTemplatePayload(data, config, label))
               results.push(h.image(image, 'image/png'))
             } catch (error) {
-              const fallback = createTypstFailureOutput(error, cfg, modes, formatTextOutput(data, cfg, label))
+              const fallback = createTypstFailureOutput(error, config, modes, formatTextOutput(data, config, label))
               if (fallback) results.push(fallback)
             }
           }
         }
-        if (cfg.quoteCommandReplies && session.messageId) return h('', [h.quote(session.messageId), ...results])
+        if (config.quoteCommandReplies && session.messageId) return h('', [h.quote(session.messageId), ...results])
         return results
       } catch (error) {
         logger.error(`获取玩家在线详情失败: ${error}`)

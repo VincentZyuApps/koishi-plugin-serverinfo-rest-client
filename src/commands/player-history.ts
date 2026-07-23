@@ -1,24 +1,23 @@
-import type { Context } from 'koishi'
-import type { ApiClient } from '../api/client'
 import type { PlayerHistoryResponse } from '../api/types'
 import type { Config } from '../config'
-import { renderTypstTemplate } from '../index'
+import { renderTypstTemplate } from '../typst'
 import { buildCommandKeyboard, escapeMarkdown, sendRenderedReply } from '../qq'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
+import type { CommandRegistrationContext } from './types'
 
-export function registerHistoryCommand(
-  ctx: Context,
-  config: Config,
-  apiClient: ApiClient,
-  logger: any,
-  prefix: string,
-) {
-  const historyCommand = primaryCommand(prefix, COMMAND_NAMES.history)
+export function registerPlayerHistoryCommand({
+  ctx,
+  config,
+  apiClient,
+  logger,
+  prefix,
+}: CommandRegistrationContext) {
+  const historyCommand = primaryCommand(prefix, COMMAND_NAMES.playerHistory)
   ctx.command(
     `${historyCommand} [page:number]`,
-    commandDescription(COMMAND_NAMES.history, '查询历史玩家记录'),
+    commandDescription(COMMAND_NAMES.playerHistory, '查询历史玩家记录'),
   )
-    .alias(aliasCommand(prefix, COMMAND_NAMES.history))
+    .alias(aliasCommand(prefix, COMMAND_NAMES.playerHistory))
     .action(async ({ session }, requestedPage) => {
       const page = Math.max(1, Math.floor(Number(requestedPage) || 1))
       try {
@@ -50,7 +49,7 @@ export function registerHistoryCommand(
         return sendRenderedReply(ctx, session, config, {
           image,
           text,
-          title: `${config.serverLabel} ${COMMAND_NAMES.history.emoji} 历史玩家`,
+          title: `${config.serverLabel} ${COMMAND_NAMES.playerHistory.emoji} 历史玩家`,
           markdownBody: formatHistoryMarkdown(data),
           keyboard: buildCommandKeyboard(config, buttons),
         }, logger)
@@ -65,7 +64,7 @@ function formatHistoryText(config: Config, data: PlayerHistoryResponse): string 
   const names = data.players.length
     ? data.players.map((player, index) => `${(data.page - 1) * data.pageSize + index + 1}. ${player.name}`).join('\n')
     : '暂无历史玩家'
-  return `${config.serverLabel} ${COMMAND_NAMES.history.emoji} 历史玩家共 ${data.total} 人（第 ${data.page}/${data.pageCount} 页）\n${names}`
+  return `${config.serverLabel} ${COMMAND_NAMES.playerHistory.emoji} 历史玩家共 ${data.total} 人（第 ${data.page}/${data.pageCount} 页）\n${names}`
 }
 
 function formatHistoryMarkdown(data: PlayerHistoryResponse): string {
