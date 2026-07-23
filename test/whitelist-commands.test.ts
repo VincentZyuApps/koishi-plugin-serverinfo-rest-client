@@ -50,14 +50,14 @@ describe('whitelist commands', () => {
   it('allows unbinding in direct messages and removes the only binding', async () => {
     const { actions, api } = createHarness()
     api.post.mockResolvedValue({
-      binding: { playerName: 'Steve' }, warning: '',
+      binding: { playerName: 'Steve' }, allowlistSyncEnabled: false, warning: '',
     })
     const action = actions.get('mcinfo1.解绑玩家')!
     const result = await action({ session: session(true) })
     expect(api.post).toHaveBeenCalledWith('/whitelist/unbind', {
       platform: 'qq', selfId: 'bot-1', userId: 'user-1',
     }, true)
-    expect(result).toBe('已解除与 Steve 的玩家绑定')
+    expect(result).toBe('已解除与 Steve 的玩家绑定\n提示：BDS allowlist 同步已关闭，本次仅修改账号绑定')
   })
 
   it('can independently restrict unbinding to groups', async () => {

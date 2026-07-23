@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { mkdtemp, readFile, rm, unlink, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, rm, unlink, writeFile } from 'node:fs/promises'
 import { describe, expect, it } from 'vitest'
 import {
   ensureTemplateAssets,
@@ -77,6 +77,30 @@ describe('Typst template assets', () => {
       expect(await readFile(path.join(runtimeDir, 'common.typ'), 'utf8')).not.toContain('#let setup-page(')
       expect(await readFile(path.join(runtimeDir, 'players-count.typ'), 'utf8')).toContain('#set page(')
       expect((await getTemplateAssetStatus(baseDir, config.typstTemplateFolderRelativePath)).modifiedCount).toBe(0)
+    } finally {
+      await rm(baseDir, { recursive: true, force: true })
+    }
+  })
+
+  it('backs up and upgrades the legacy player detail payload template only', async () => {
+    const baseDir = await createBaseDir()
+    const ctx = { baseDir } as any
+    try {
+      await ensureTemplateAssets(ctx, config)
+      const runtimeDir = getRuntimeTemplateDir(baseDir, config.typstTemplateFolderRelativePath)
+      const playerDetailPath = path.join(runtimeDir, 'player-detail.typ')
+      const commonPath = path.join(runtimeDir, 'common.typ')
+      const legacy = '#let position-row = if payload.position == none { () }\n#payload.xuid\n'
+      await writeFile(playerDetailPath, legacy, 'utf8')
+      await writeFile(commonPath, '// custom common template\n', 'utf8')
+
+      await ensureTemplateAssets(ctx, config)
+
+      expect(await readFile(playerDetailPath, 'utf8')).toContain('payload.sections')
+      expect(await readFile(commonPath, 'utf8')).toBe('// custom common template\n')
+      const backups = (await readdir(runtimeDir)).filter(file => file.startsWith('player-detail.typ.backup-'))
+      expect(backups).toHaveLength(1)
+      expect(await readFile(path.join(runtimeDir, backups[0]), 'utf8')).toBe(legacy)
     } finally {
       await rm(baseDir, { recursive: true, force: true })
     }

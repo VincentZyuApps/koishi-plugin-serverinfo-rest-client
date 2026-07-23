@@ -10,6 +10,60 @@ import { createQQConfigSchema, QQConfig } from './qq/config'
 export type OutputMode = 'text' | 'typst-image'
 export type TokenSendMode = 'param' | 'header' | 'both'
 
+export interface PlayerFieldFilter {
+  key: string
+  enabled: boolean
+}
+
+export const DEFAULT_PLAYER_FIELD_FILTERS: readonly PlayerFieldFilter[] = [
+  { key: 'name', enabled: true },
+  { key: 'xuid', enabled: true },
+  { key: 'uuid', enabled: true },
+  { key: 'uniqueId', enabled: false },
+  { key: 'permissionLevel', enabled: true },
+  { key: 'isOperator', enabled: true },
+  { key: 'isSimulated', enabled: true },
+  { key: 'locale', enabled: true },
+  { key: 'gameMode', enabled: true },
+  { key: 'health', enabled: true },
+  { key: 'maxHealth', enabled: true },
+  { key: 'speed', enabled: true },
+  { key: 'isFlying', enabled: true },
+  { key: 'isSneaking', enabled: true },
+  { key: 'isSprinting', enabled: true },
+  { key: 'isMoving', enabled: true },
+  { key: 'isInWater', enabled: true },
+  { key: 'isInLava', enabled: true },
+  { key: 'isOnGround', enabled: true },
+  { key: 'isOnFire', enabled: true },
+  { key: 'isSleeping', enabled: true },
+  { key: 'isGliding', enabled: true },
+  { key: 'isRiding', enabled: true },
+  { key: 'isInvisible', enabled: true },
+  { key: 'canFly', enabled: true },
+  { key: 'canSleep', enabled: true },
+  { key: 'position', enabled: false },
+  { key: 'position.dimensionId', enabled: true },
+  { key: 'blockPosition', enabled: false },
+  { key: 'feetPosition', enabled: false },
+  { key: 'lastDeathPosition', enabled: false },
+  { key: 'respawnPosition', enabled: false },
+  { key: 'rotation', enabled: false },
+  { key: 'biome', enabled: true },
+  { key: 'standingOn', enabled: true },
+  { key: 'expNeededForNextLevel', enabled: true },
+  { key: 'mainHand', enabled: false },
+  { key: 'offHand', enabled: false },
+  { key: 'armor', enabled: false },
+  { key: 'device.platform', enabled: false },
+  { key: 'device.inputMode', enabled: false },
+  { key: 'network.currentPingMs', enabled: true },
+  { key: 'network.averagePingMs', enabled: true },
+  { key: 'network.currentPacketLoss', enabled: true },
+  { key: 'network.averagePacketLoss', enabled: true },
+  { key: 'snapshotAtMs', enabled: true },
+]
+
 /**
  * 插件配置接口
  */
@@ -42,7 +96,7 @@ export interface Config extends QQConfig {
   /** 是否隐藏玩家坐标 */
   hidePlayerCoordinates: boolean
   /** 玩家信息字段过滤配置 */
-  playerFieldFilters: { key: string; enabled: boolean }[]
+  playerFieldFilters: PlayerFieldFilter[]
   /** 历史记录每页玩家数量 */
   historyPageSize: number
   /** 允许执行服务端命令的聊天账号 */
@@ -187,84 +241,16 @@ export const Config: Schema<Config> = Schema.intersect([
   Schema.object({
     hidePlayerCoordinates: Schema.boolean()
       .default(true)
-      .description('🙈 是否隐藏玩家坐标（players 指令中不显示具体坐标）'),
+      .description('🙈 是否隐藏“玩家在线详情”中的全部精确坐标；维度信息不受影响'),
     playerFieldFilters: Schema.array(
       Schema.object({
-        key: Schema.string().description('字段路径（嵌套用英文句号分隔，如 pos.x、device.ip）'),
+        key: Schema.string().description('API v2 字段路径（嵌套用英文句号分隔，如 position.dimensionId、network.averagePingMs）'),
         enabled: Schema.boolean().default(true).description('是否显示'),
       })
     )
       .role('table')
-      .default([
-        // 📋 基本信息 - 一般可以展示
-        { key: 'name', enabled: true },
-        { key: 'xuid', enabled: true },
-        { key: 'uuid', enabled: true },
-        { key: 'uniqueId', enabled: false },
-        { key: 'permLevel', enabled: true },
-        { key: 'isOP', enabled: true },
-        { key: 'isSimulatedPlayer', enabled: true },
-        { key: 'langCode', enabled: true },
-        // 🎮 游戏状态
-        { key: 'gameMode', enabled: true },
-        { key: 'health', enabled: true },
-        { key: 'maxHealth', enabled: true },
-        { key: 'speed', enabled: true },
-        { key: 'isFlying', enabled: true },
-        { key: 'isSneaking', enabled: true },
-        { key: 'isSprinting', enabled: true },
-        { key: 'isMoving', enabled: true },
-        { key: 'isInAir', enabled: true },
-        { key: 'isInWater', enabled: true },
-        { key: 'isInLava', enabled: true },
-        { key: 'isOnGround', enabled: true },
-        { key: 'isOnFire', enabled: true },
-        { key: 'isSleeping', enabled: true },
-        { key: 'isGliding', enabled: true },
-        { key: 'isRiding', enabled: true },
-        { key: 'isInvisible', enabled: true },
-        { key: 'isHungry', enabled: true },
-        { key: 'canFly', enabled: true },
-        { key: 'canSleep', enabled: true },
-        { key: 'canPickupItems', enabled: true },
-        // 📍 位置信息 - 隐私敏感，默认隐藏坐标细节
-        { key: 'pos', enabled: false },
-        { key: 'pos.dimId', enabled: true },
-        { key: 'blockPos', enabled: false },
-        { key: 'feetPos', enabled: false },
-        { key: 'lastDeathPos', enabled: false },
-        { key: 'respawnPos', enabled: false },
-        { key: 'direction', enabled: false },
-        // 🌍 环境信息
-        { key: 'biome', enabled: true },
-        { key: 'biome.id', enabled: false },
-        { key: 'biome.name', enabled: true },
-        { key: 'standingOn', enabled: true },
-        { key: 'standingOn.type', enabled: false },
-        { key: 'standingOn.name', enabled: true },
-        // ⭐ 经验信息
-        { key: 'level', enabled: true },
-        { key: 'currentExp', enabled: true },
-        { key: 'totalExp', enabled: true },
-        { key: 'expNeededForNextLevel', enabled: true },
-        // 🎒 物品信息
-        { key: 'handItem', enabled: true },
-        { key: 'offHandItem', enabled: true },
-        { key: 'armor', enabled: true },
-        { key: 'tags', enabled: true },
-        // 📱 设备信息 - 高度隐私，默认隐藏
-        { key: 'device', enabled: false },
-        { key: 'device.ip', enabled: false },
-        { key: 'device.os', enabled: true },
-        { key: 'device.clientId', enabled: false },
-        { key: 'device.inputMode', enabled: true },
-        { key: 'device.serverAddress', enabled: false },
-        { key: 'device.avgPing', enabled: true },
-        { key: 'device.avgPacketLoss', enabled: true },
-        { key: 'device.lastPing', enabled: true },
-        { key: 'device.lastPacketLoss', enabled: true },
-      ])
-      .description('🔧 玩家信息字段过滤（控制 player 子指令显示哪些字段）'),
+      .default(DEFAULT_PLAYER_FIELD_FILTERS.map(field => ({ ...field })))
+      .description('🔧 “玩家在线详情”字段过滤；装备、平台、输入方式与精确坐标默认关闭'),
     historyPageSize: Schema.number()
       .min(1)
       .max(100)

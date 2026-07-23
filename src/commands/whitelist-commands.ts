@@ -32,7 +32,7 @@ function registerSelfBindingCommands(
   const bindPlayerCommand = primaryCommand(prefix, COMMAND_NAMES.bindWhitelist)
   const unbindPlayerCommand = primaryCommand(prefix, COMMAND_NAMES.unbindWhitelist)
 
-  ctx.command(`${bindPlayerCommand} <playerName:text>`, commandDescription(COMMAND_NAMES.bindWhitelist, '绑定当前聊天账号与 Xbox 玩家（服务端启用绑定进服校验时，同时授予进服权限）'), {
+  ctx.command(`${bindPlayerCommand} <playerName:text>`, commandDescription(COMMAND_NAMES.bindWhitelist, '绑定当前聊天账号与 Xbox 玩家（服务端启用 BDS allowlist 同步时，同时更新进服名单）'), {
     authority: config.whitelistBindingAuthority,
   })
     .alias(aliasCommand(prefix, COMMAND_NAMES.bindWhitelist))
@@ -52,14 +52,14 @@ function registerSelfBindingCommands(
           playerName,
         }, true)
         const state = data.created ? '绑定成功' : '已经绑定'
-        return quoteIfNeeded(session, config, `${state}：${data.binding.playerName}${formatWarning(data)}`)
+        return quoteIfNeeded(session, config, `${state}：${data.binding.playerName}${formatAllowlistResult(data)}`)
       } catch (error) {
         logger.error(`绑定玩家失败: ${error}`)
         return `绑定玩家失败：${error instanceof Error ? error.message : String(error)}`
       }
     })
 
-  ctx.command(unbindPlayerCommand, commandDescription(COMMAND_NAMES.unbindWhitelist, '解除当前聊天账号的玩家绑定，并同步移除该玩家的 BDS allowlist 项目'), {
+  ctx.command(unbindPlayerCommand, commandDescription(COMMAND_NAMES.unbindWhitelist, '解除当前聊天账号的玩家绑定；服务端启用同步时同时移除 BDS allowlist 项目'), {
     authority: config.whitelistBindingAuthority,
   })
     .alias(aliasCommand(prefix, COMMAND_NAMES.unbindWhitelist))
@@ -74,7 +74,7 @@ function registerSelfBindingCommands(
           selfId,
           userId: session.userId,
         }, true)
-        return quoteIfNeeded(session, config, `已解除与 ${data.binding.playerName} 的玩家绑定${formatWarning(data)}`)
+        return quoteIfNeeded(session, config, `已解除与 ${data.binding.playerName} 的玩家绑定${formatAllowlistResult(data)}`)
       } catch (error) {
         logger.error(`解绑玩家失败: ${error}`)
         return `解绑玩家失败：${error instanceof Error ? error.message : String(error)}`
@@ -126,7 +126,7 @@ function registerAdminAddBindingCommand(
         return quoteIfNeeded(
           session,
           config,
-          `${state}：${maskIdentifier(data.binding.userId)} ↔ ${data.binding.playerName}${replacements}${formatWarning(data)}`,
+          `${state}：${maskIdentifier(data.binding.userId)} ↔ ${data.binding.playerName}${replacements}${formatAllowlistResult(data)}`,
         )
       } catch (error) {
         logger.error(`添加白名单失败: ${error}`)
@@ -186,7 +186,7 @@ function registerAdminRemoveBindingCommand(
   const commandName = primaryCommand(prefix, command)
   ctx.command(
     `${commandName} <playerName:text>`,
-    commandDescription(command, '管理员按 Xbox 玩家名移除唯一绑定与 BDS allowlist 项目'),
+    commandDescription(command, '管理员按 Xbox 玩家名移除唯一绑定；服务端启用同步时同时移除 BDS allowlist 项目'),
   )
     .alias(aliasCommand(prefix, command))
     .action(async ({ session }, rawPlayerName) => {
@@ -204,7 +204,7 @@ function registerAdminRemoveBindingCommand(
         return quoteIfNeeded(
           session,
           config,
-          `已移除绑定：${maskIdentifier(data.binding.userId)} ↔ ${data.binding.playerName}${formatWarning(data)}`,
+          `已移除绑定：${maskIdentifier(data.binding.userId)} ↔ ${data.binding.playerName}${formatAllowlistResult(data)}`,
         )
       } catch (error) {
         logger.error(`移除白名单失败: ${error}`)
@@ -239,6 +239,17 @@ function maskIdentifier(value: string): string {
 function formatWarning(data: { warning?: string; commandOutput?: string }): string {
   if (!data.warning) return ''
   return `\n注意：${data.warning}${data.commandOutput ? `\n${data.commandOutput}` : ''}`
+}
+
+function formatAllowlistResult(data: {
+  allowlistSyncEnabled?: boolean
+  warning?: string
+  commandOutput?: string
+}): string {
+  const syncNotice = data.allowlistSyncEnabled === false
+    ? '\n提示：BDS allowlist 同步已关闭，本次仅修改账号绑定'
+    : ''
+  return `${syncNotice}${formatWarning(data)}`
 }
 
 function quoteIfNeeded(session: Session, config: Config, text: string) {

@@ -143,11 +143,40 @@ async function seedMissingTemplates(baseDir: string, parts?: readonly string[]):
     return
   }
 
+  const playerDetailPath = path.join(runtimeDir, TEMPLATE_ENTRIES.playerDetail)
+  if (existsSync(playerDetailPath)) {
+    const playerDetail = await readFile(playerDetailPath, 'utf8')
+    const usesLegacyPlayerPayload = playerDetail.includes('payload.xuid')
+      && playerDetail.includes('payload.position')
+      && !playerDetail.includes('payload.sections')
+    if (usesLegacyPlayerPayload) {
+      const backupPath = await getUniqueTemplateFileBackupPath(playerDetailPath)
+      await rename(playerDetailPath, backupPath)
+      try {
+        await copyFileAtomic(path.join(bundledDir, TEMPLATE_ENTRIES.playerDetail), playerDetailPath)
+      } catch (error) {
+        await rename(backupPath, playerDetailPath)
+        throw error
+      }
+    }
+  }
+
   for (const fileName of TEMPLATE_FILES) {
     const sourcePath = path.join(bundledDir, fileName)
     const targetPath = path.join(runtimeDir, fileName)
     if (!existsSync(targetPath)) await copyFileAtomic(sourcePath, targetPath)
   }
+}
+
+async function getUniqueTemplateFileBackupPath(filePath: string): Promise<string> {
+  const basePath = `${filePath}.backup-${formatSecondTimestamp()}`
+  let candidate = basePath
+  let suffix = 2
+  while (existsSync(candidate)) {
+    candidate = `${basePath}-${suffix}`
+    suffix += 1
+  }
+  return candidate
 }
 
 export async function ensureTemplateAssets(ctx: Context, cfg: Config): Promise<void> {

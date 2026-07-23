@@ -76,6 +76,7 @@ describe('command registration', () => {
     })
     expect(commandUsage(prefix, COMMAND_NAMES.player, '<玩家名>'))
       .toBe('mcinfo1.玩家在线详情 <玩家名> (online-player)')
+    expect(aliasCommand(prefix, COMMAND_NAMES.status)).toBe('mcinfo1.server-status')
   })
 
   it('keeps the configured root command while registering feature commands without a prefix', () => {
@@ -93,6 +94,7 @@ describe('command registration', () => {
     ))).toBe(true)
     expect(commandUsage('', COMMAND_NAMES.player, '<玩家名>'))
       .toBe('玩家在线详情 <玩家名> (online-player)')
+    expect(aliasCommand('', COMMAND_NAMES.status)).toBe('server-status')
   })
 
   it('falls back to mcinfo1 for an empty root command and keeps prefixes enabled by default', () => {

@@ -44,14 +44,82 @@ export interface PlayersNamesResponse {
   count: number
 }
 
+export interface PlayerEnumValue {
+  value: number
+  name: string
+}
+
+export interface PlayerPosition {
+  x: number
+  y: number
+  z: number
+  dimensionId?: number
+}
+
+export interface PlayerBlockPosition {
+  x: number
+  y: number
+  z: number
+  dimensionId?: number
+}
+
+export interface PlayerItem {
+  typeName: string
+  displayName: string
+  count: number
+  enchanted: boolean
+}
+
 export interface PlayerResponse {
   name: string
   xuid: string
   uuid: string
-  ipAndPort: string
+  uniqueId: string
   locale: string
+  permissionLevel: PlayerEnumValue
   isOperator: boolean
-  position: { x: number; y: number; z: number }
+  isSimulated: boolean
+  gameMode: PlayerEnumValue
+  health: number
+  maxHealth: number
+  speed: number
+  isFlying: boolean
+  isSneaking: boolean
+  isSprinting: boolean
+  isMoving: boolean
+  isInWater: boolean
+  isInLava: boolean
+  isOnGround: boolean
+  isOnFire: boolean
+  isSleeping: boolean
+  isGliding: boolean
+  isRiding: boolean
+  isInvisible: boolean
+  canFly: boolean
+  canSleep: boolean
+  position: PlayerPosition
+  blockPosition: PlayerBlockPosition
+  feetPosition: PlayerPosition
+  lastDeathPosition: PlayerBlockPosition | null
+  respawnPosition: PlayerBlockPosition | null
+  rotation: { pitch: number; yaw: number }
+  biome: { id: number; name: string } | null
+  standingOn: { typeName: string; descriptionId: string } | null
+  expNeededForNextLevel: number
+  mainHand: PlayerItem | null
+  offHand: PlayerItem | null
+  armor: Array<{ slot: string; item: PlayerItem }>
+  device: {
+    platform: PlayerEnumValue
+    inputMode: PlayerEnumValue | null
+  }
+  network: {
+    currentPingMs: number
+    averagePingMs: number
+    currentPacketLoss: number
+    averagePacketLoss: number
+  } | null
+  snapshotAtMs: number
 }
 
 export interface TpsSnapshot {
@@ -114,6 +182,14 @@ export interface WhitelistBinding {
   boundAtMs: number
 }
 
+export interface AllowlistOperation {
+  operation: 'add' | 'remove'
+  playerName: string
+  success: boolean
+  timedOut: boolean
+  output: string
+}
+
 export interface WhitelistBindingResponse {
   success: boolean
   created?: boolean
@@ -122,7 +198,9 @@ export interface WhitelistBindingResponse {
   replacedBindings?: Array<WhitelistBinding & {
     reason?: 'target_user_was_bound' | 'target_player_was_bound'
   }>
-  allowlistUpdated: boolean
+  allowlistSyncEnabled: boolean
+  allowlistUpdated: boolean | null
+  allowlistOperations: AllowlistOperation[]
   commandOutput: string
   warning?: string
 }
@@ -139,7 +217,9 @@ export interface WhitelistRemovalResponse {
   playerName: string
   binding: WhitelistBinding
   recordRemoved: true
-  allowlistUpdated: boolean
+  allowlistSyncEnabled: boolean
+  allowlistUpdated: boolean | null
+  allowlistOperations: AllowlistOperation[]
   commandOutput: string
   warning?: string
 }

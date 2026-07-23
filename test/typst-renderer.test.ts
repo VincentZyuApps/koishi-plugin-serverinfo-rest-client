@@ -74,8 +74,10 @@ describe('TypstRenderer', () => {
         mobs_killed: '56', join_count: '7', first_seen: '2026/07/20', last_seen: '2026/07/22',
       },
       playerDetail: {
-        label: '测试服', name: 'Steve', xuid: '123456', uuid: 'uuid-value', locale: 'zh_CN',
-        operator: '否', position: '1.0, 64.0, 2.0',
+        label: '测试服', name: 'Steve', sections: [
+          { title: '📋 基本信息', rows: [{ label: 'XUID', value: '123456' }, { label: '语言', value: 'zh_CN' }] },
+          { title: '🎮 游戏状态', rows: [{ label: '生命值', value: '20/20' }] },
+        ],
       },
       playersList: { label: '测试服', count: 1, players: [{ name: 'Steve' }] },
       playersCount: { label: '测试服', count: 1, generated_at: '2026/07/22 12:00:00' },
@@ -114,7 +116,7 @@ describe('TypstRenderer', () => {
 
       const conditionalVariants: Array<[keyof typeof TEMPLATE_ENTRIES, Record<string, unknown>]> = [
         ['onlineStatus', { ...payloads.onlineStatus, online: false, error: '连接超时' }],
-        ['playerDetail', { ...payloads.playerDetail, position: null }],
+        ['playerDetail', { ...payloads.playerDetail, sections: [] }],
         ['playersList', { ...payloads.playersList, count: 0, players: [] }],
         ['playerNames', { ...payloads.playerNames, count: 0, names: [] }],
       ]
