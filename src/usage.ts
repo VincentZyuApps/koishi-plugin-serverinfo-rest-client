@@ -101,8 +101,10 @@ export const usage = `
 
 <p>查询类指令可通过 <code>--mode text</code> 或 <code>--mode image</code> 临时指定输出形式。</p>
 <p>关闭 <code>useCommandPrefix</code> 后，表中的中文主指令和英文 alias 均去掉 <code>mcinfo1.</code>，单独的 <code>mcinfo1</code> 仍可查看本插件帮助。</p>
-<p><code>按钮菜单 [页码]</code> 仅支持 <code>qq</code> 平台，并要求 QQ Markdown 与按钮功能均已开启。第 1 页以两列四行展示八个服务器与概览入口，第 2 页以两列三行展示六个玩家与账号入口，四条管理员指令不会出现在菜单中。</p>
+<p><code>按钮菜单 [页码]</code> 仅支持 <code>qq</code> 平台，并由 <code>qqKeyboardEnabled</code> 独立控制；关闭查询结果的 QQ Markdown 输出不会禁用按钮菜单。第 1 页以两列四行展示八个服务器与概览入口，第 2 页以两列三行展示六个玩家与账号入口，四条管理员指令不会出现在菜单中。</p>
 <p>两页底部始终保留上一页和下一页；边界红叉按钮仍可点击，并会提示已经位于第一页或最后一页。绑定玩家、玩家在线详情和解绑玩家按钮只填入指令而不自动发送。</p>
+<p><code>qqMarkdownEnabled</code> 只控制查询结果自动使用 QQ Markdown 与公网图片，<code>qqKeyboardEnabled</code> 独立控制“查在线”键盘和“按钮菜单”指令。</p>
+<p>启用 <code>verboseConsoleLog</code> 后会输出 API 摘要、QQ 图片缓存路径和完整临时公网 URL。API token 会被隐藏，但图片 URL 在缓存有效期内可直接访问，请勿公开生产日志。</p>
 </details>
 
 <details>

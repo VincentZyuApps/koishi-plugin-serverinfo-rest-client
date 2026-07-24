@@ -1,13 +1,13 @@
 import type { WhitelistBindingResponse } from '../../api/types'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from '../command-names'
 import type { CommandRegistrationContext } from '../types'
+import { formatErrorForLog, logInfo } from '../../logger'
 import { formatAllowlistResult, getSelfId, quoteIfNeeded } from './shared'
 
 export function registerBindPlayerCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
 }: CommandRegistrationContext) {
   const bindPlayerCommand = primaryCommand(prefix, COMMAND_NAMES.bindPlayer)
@@ -35,7 +35,7 @@ export function registerBindPlayerCommand({
         const state = data.created ? '绑定成功' : '已经绑定'
         return quoteIfNeeded(session, config, `${state}：${data.binding.playerName}${formatAllowlistResult(data)}`)
       } catch (error) {
-        logger.error(`绑定玩家失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 绑定玩家失败', formatErrorForLog(error))
         return `绑定玩家失败：${error instanceof Error ? error.message : String(error)}`
       }
     })

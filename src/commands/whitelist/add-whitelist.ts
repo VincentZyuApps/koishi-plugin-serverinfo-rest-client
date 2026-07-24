@@ -2,6 +2,7 @@ import type { WhitelistBindingResponse } from '../../api/types'
 import { hasPermission } from '../../permissions'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from '../command-names'
 import type { CommandRegistrationContext } from '../types'
+import { formatErrorForLog, logInfo } from '../../logger'
 import {
   formatAllowlistResult,
   getSelfId,
@@ -15,7 +16,6 @@ export function registerAddWhitelistCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
 }: CommandRegistrationContext) {
   const command = COMMAND_NAMES.addWhitelist
@@ -58,7 +58,7 @@ export function registerAddWhitelistCommand({
           `${state}：${maskIdentifier(data.binding.userId)} ↔ ${data.binding.playerName}${replacements}${formatAllowlistResult(data)}`,
         )
       } catch (error) {
-        logger.error(`添加白名单失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 添加白名单失败', formatErrorForLog(error))
         return `添加白名单失败：${error instanceof Error ? error.message : String(error)}`
       }
     })

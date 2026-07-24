@@ -153,7 +153,7 @@ export interface Config extends QQConfig {
   typstStatsTextColor: string
 
   // ========== 🛠️ 调试选项 ==========
-  /** 启用调试日志 */
+  /** 启用详细调试日志 */
   verboseConsoleLog: boolean
 }
 
@@ -357,11 +357,11 @@ export const Config: Schema<Config> = Schema.intersect([
       .description('📊 Typst 统计信息文字颜色'),
   }).description('🧩 Typst 渲染配置'),
 
+  createQQConfigSchema(),
+
   Schema.object({
     verboseConsoleLog: Schema.boolean()
       .default(false)
-      .description('🐛 启用调试日志'),
+      .description('🐛 启用详细调试日志；包含 API 请求摘要、QQ 图片缓存路径与完整临时公网 URL，请勿公开粘贴生产日志'),
   }).description('🛠️ 调试选项'),
-
-  createQQConfigSchema(),
 ])

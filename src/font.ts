@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs'
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import type { Context } from 'koishi'
 import type { Config } from './config'
+import { formatErrorForLog, logInfo } from './logger'
 
 export const FONT_FILES = {
   LXGW: 'LXGWWenKaiMono-Medium.ttf',
@@ -108,19 +109,27 @@ function validateBuffer(data: Buffer, meta: ManagedFontMeta): string | null {
 
 async function downloadFont(
   ctx: Context,
+  config: Config,
   meta: ManagedFontMeta,
   filePath: string,
 ): Promise<void> {
   await mkdir(path.dirname(filePath), { recursive: true })
 
   for (const url of meta.urls) {
-    ctx.logger.info(`下载字体资源: ${FONT_FILES[meta.key]} <- ${url}`)
+    if (config.verboseConsoleLog) {
+      logInfo(ctx, config, `开始下载字体资源: ${FONT_FILES[meta.key]}`, `URL: ${url}\n保存路径: ${filePath}`)
+    }
     try {
       const response = await ctx.http.get(url, { responseType: 'arraybuffer', timeout: 120000 })
       const data = Buffer.from(response as ArrayBuffer)
       const invalidReason = validateBuffer(data, meta)
       if (invalidReason) {
-        ctx.logger.warn(`字体资源校验失败: ${FONT_FILES[meta.key]}, ${invalidReason}`)
+        logInfo(
+          ctx,
+          config,
+          `[WARN] 字体资源校验失败: ${FONT_FILES[meta.key]}`,
+          `URL: ${url}\n原因: ${invalidReason}`,
+        )
         continue
       }
 
@@ -128,10 +137,15 @@ async function downloadFont(
       await writeFile(tempPath, data)
       await rm(filePath, { force: true })
       await rename(tempPath, filePath)
-      ctx.logger.info(`字体资源已就绪: ${FONT_FILES[meta.key]}`)
+      logInfo(ctx, config, `字体资源已就绪: ${FONT_FILES[meta.key]}`, `保存路径: ${filePath}`)
       return
     } catch (error) {
-      ctx.logger.warn(`字体资源下载失败: ${FONT_FILES[meta.key]}, ${error}`)
+      logInfo(
+        ctx,
+        config,
+        `[WARN] 字体资源下载失败: ${FONT_FILES[meta.key]}`,
+        `URL: ${url}\n${formatErrorForLog(error)}`,
+      )
     }
   }
   throw new Error(`无法下载并校验字体资源: ${FONT_FILES[meta.key]}`)
@@ -150,7 +164,7 @@ export async function checkAndDownloadFonts(ctx: Context, cfg: Config): Promise<
 
   for (const target of getDownloadTargets(ctx, cfg)) {
     if (await validateFile(target.path, target.meta)) continue
-    await downloadFont(ctx, target.meta, target.path)
+    await downloadFont(ctx, cfg, target.meta, target.path)
   }
 }
 

@@ -4,12 +4,12 @@ import { renderTypstTemplate } from '../typst'
 import { buildCommandKeyboard, escapeMarkdown, sendRenderedReply } from '../qq'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
 import type { CommandRegistrationContext } from './types'
+import { formatErrorForLog, logInfo } from '../logger'
 
 export function registerPlayerHistoryCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
 }: CommandRegistrationContext) {
   const historyCommand = primaryCommand(prefix, COMMAND_NAMES.playerHistory)
@@ -25,7 +25,7 @@ export function registerPlayerHistoryCommand({
           page: String(page),
           pageSize: String(config.historyPageSize),
         })
-        const image = await renderTypstTemplate(ctx, config, logger, 'playerHistory', {
+        const image = await renderTypstTemplate(ctx, config, 'playerHistory', {
           label: config.serverLabel,
           total: data.total,
           page: data.page,
@@ -52,9 +52,9 @@ export function registerPlayerHistoryCommand({
           title: `${config.serverLabel} ${COMMAND_NAMES.playerHistory.emoji} 历史玩家`,
           markdownBody: formatHistoryMarkdown(data),
           keyboard: buildCommandKeyboard(config, buttons),
-        }, logger)
+        })
       } catch (error) {
-        logger.error(`查询历史记录失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 查询历史记录失败', formatErrorForLog(error))
         return `查询历史记录失败：${error instanceof Error ? error.message : String(error)}`
       }
     })

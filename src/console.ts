@@ -2,6 +2,7 @@ import path from 'node:path'
 import type { Context } from 'koishi'
 import type {} from '@koishijs/plugin-console'
 import type { Config } from './config'
+import { logInfo } from './logger'
 import {
   getTemplateAssetStatus,
   listRuntimeTemplateFiles,
@@ -26,7 +27,6 @@ const registeredRoots = new WeakSet<object>()
 export function applyTemplateConsole(
   ctx: Context,
   cfg: Config,
-  logger: any,
   resetTemplateCaches: () => void,
 ): void {
   const root = ((ctx as Context & { root?: Context }).root || ctx) as Context
@@ -42,7 +42,12 @@ export function applyTemplateConsole(
     consoleCtx.console.addListener('ll-serverinfo-rest-client/templates/restore', async () => {
       const result = await restoreOfficialTemplates(root.baseDir, cfg.typstTemplateFolderRelativePath)
       resetTemplateCaches()
-      logger.info(`Typst 默认模板已恢复；备份目录: ${result.backupPath || '无（原目录不存在）'}`)
+      logInfo(
+        ctx,
+        cfg,
+        'Typst 默认模板已恢复',
+        `备份目录: ${result.backupPath || '无（原目录不存在）'}`,
+      )
       return result
     }, { authority: 4 })
 

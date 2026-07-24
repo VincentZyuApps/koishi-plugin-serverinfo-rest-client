@@ -8,6 +8,7 @@ import {
   createTypstFailureOutput,
 } from '../typst'
 import type { CommandRegistrationContext } from './types'
+import { formatErrorForLog, logInfo } from '../logger'
 
 interface PlayerDetailRow {
   label: string
@@ -297,7 +298,6 @@ export function registerPlayerDetailsCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
   label,
 }: CommandRegistrationContext) {
@@ -318,7 +318,7 @@ export function registerPlayerDetailsCommand({
             results.push(h.text(formatTextOutput(data, config, label)))
           } else {
             try {
-              const image = await renderTypstTemplate(ctx, config, logger, 'playerDetail', createTemplatePayload(data, config, label))
+              const image = await renderTypstTemplate(ctx, config, 'playerDetail', createTemplatePayload(data, config, label))
               results.push(h.image(image, 'image/png'))
             } catch (error) {
               const fallback = createTypstFailureOutput(error, config, modes, formatTextOutput(data, config, label))
@@ -329,7 +329,7 @@ export function registerPlayerDetailsCommand({
         if (config.quoteCommandReplies && session.messageId) return h('', [h.quote(session.messageId), ...results])
         return results
       } catch (error) {
-        logger.error(`获取玩家在线详情失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 获取玩家在线详情失败', formatErrorForLog(error))
         return `❌ 获取玩家在线详情失败: ${error instanceof Error ? error.message : String(error)}`
       }
     })

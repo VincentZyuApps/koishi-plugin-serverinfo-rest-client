@@ -6,7 +6,6 @@ export interface CommandRegistrationContext {
   ctx: Context
   config: Config
   apiClient: ApiClient
-  logger: ReturnType<Context['logger']>
   rootCommand: string
   prefix: string
   label: string

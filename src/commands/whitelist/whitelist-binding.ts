@@ -2,13 +2,13 @@ import type { WhitelistStateResponse } from '../../api/types'
 import { hasPermission } from '../../permissions'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from '../command-names'
 import type { CommandRegistrationContext } from '../types'
+import { formatErrorForLog, logInfo } from '../../logger'
 import { maskIdentifier, quoteIfNeeded } from './shared'
 
 export function registerWhitelistBindingCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
 }: CommandRegistrationContext) {
   const command = COMMAND_NAMES.whitelistBinding
@@ -38,7 +38,7 @@ export function registerWhitelistBindingCommand({
           `Bot ID：${maskIdentifier(data.binding.selfId)}`,
         ].join('\n'))
       } catch (error) {
-        logger.error(`查询白名单绑定失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 查询白名单绑定失败', formatErrorForLog(error))
         return `查询白名单绑定失败：${error instanceof Error ? error.message : String(error)}`
       }
     })

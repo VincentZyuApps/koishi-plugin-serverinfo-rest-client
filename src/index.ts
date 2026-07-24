@@ -8,6 +8,7 @@ import { checkAndDownloadFonts } from './font'
 import { applyQQImageServer } from './qq'
 import { ensureTemplateAssets, getRuntimeTemplateDir } from './template'
 import { resetTypstTemplateCaches } from './typst'
+import { formatErrorForLog, logInfo } from './logger'
 
 export const name = 'serverinfo-rest-client'
 
@@ -24,30 +25,35 @@ export * from './typst'
 export { usage } from './usage'
 
 export async function apply(ctx: Context, cfg: Config) {
-  const logger = ctx.logger(name)
   await ensureTemplateAssets(ctx, cfg)
-  logger.info(`Typst 运行时模板目录: ${getRuntimeTemplateDir(ctx.baseDir, cfg.typstTemplateFolderRelativePath)}`)
-  applyTemplateConsole(ctx, cfg, logger, resetTypstTemplateCaches)
+  applyTemplateConsole(ctx, cfg, resetTypstTemplateCaches)
   await checkAndDownloadFonts(ctx, cfg).catch((error) => {
-    logger.warn(`字体下载失败，Typst 图片可能无法正确渲染: ${error}`)
+    logInfo(
+      ctx,
+      cfg,
+      '[WARN] 字体下载失败，Typst 图片可能无法正确渲染',
+      formatErrorForLog(error),
+    )
   })
 
-  const apiClient = createApiClient(cfg, logger)
-  applyQQImageServer(ctx)
-  logger.info(`服务器地址: ${apiClient.getBaseUrl()}`)
-  logger.info(`API 地址: ${apiClient.getApiBase()}`)
+  const apiClient = createApiClient(ctx, cfg)
+  applyQQImageServer(ctx, cfg)
+  logInfo(ctx, cfg, 'serverinfo-rest-client 已启动', [
+    `Typst 运行时模板目录: ${getRuntimeTemplateDir(ctx.baseDir, cfg.typstTemplateFolderRelativePath)}`,
+    `服务器地址: ${apiClient.getBaseUrl()}`,
+    `API 地址: ${apiClient.getApiBase()}`,
+  ].join('\n'))
 
   const { rootCommand, featurePrefix: prefix } = resolveCommandScope(cfg.commandPrefix, cfg.useCommandPrefix)
   const label = cfg.serverLabel || '【神秘小服服】'
   if (!prefix) {
-    logger.warn(`功能指令前缀已关闭，将保留 ${rootCommand} 主指令并注册顶级功能指令；请留意与其他插件的同名指令冲突`)
+    logInfo(ctx, cfg, `[WARN] 功能指令前缀已关闭，将保留 ${rootCommand} 主指令并注册顶级功能指令；请留意与其他插件的同名指令冲突`)
   }
 
   registerCommands({
     ctx,
     config: cfg,
     apiClient,
-    logger,
     rootCommand,
     prefix,
     label,

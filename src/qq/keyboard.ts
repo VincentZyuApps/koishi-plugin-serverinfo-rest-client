@@ -25,7 +25,7 @@ export const DEFAULT_QQ_KEYBOARD: QQKeyboard = {
 }
 
 export function buildQQKeyboard(config: Config): QQKeyboard | null {
-  if (!config.qqMarkdownKeyboardEnabled) return null
+  if (!config.qqKeyboardEnabled) return null
   const source = config.qqMarkdownKeyboardJson || stringifyKeyboard(DEFAULT_QQ_KEYBOARD)
   const resolved = resolveKeyboardTemplate(source, config)
   try {
@@ -55,7 +55,7 @@ export function buildCommandKeyboard(
   buttons: CommandKeyboardButton[],
   columns = 2,
 ): QQKeyboard | null {
-  if (!config.qqMarkdownKeyboardEnabled || !buttons.length) return null
+  if (!config.qqKeyboardEnabled || !buttons.length) return null
   const columnCount = Math.max(1, Math.min(5, Math.floor(columns)))
   const rows: QQKeyboard['rows'] = []
   for (let index = 0; index < buttons.length; index += columnCount) {

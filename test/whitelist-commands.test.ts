@@ -4,6 +4,7 @@ import { parseTargetUserId, registerWhitelistCommands } from '../src/commands/wh
 function createHarness(configOverrides: Record<string, unknown> = {}) {
   const actions = new Map<string, Function>()
   const ctx = {
+    logger: { info: vi.fn() },
     command: vi.fn((declaration: string) => {
       const chain: any = {
         alias: vi.fn(() => chain),
@@ -32,7 +33,6 @@ function createHarness(configOverrides: Record<string, unknown> = {}) {
     ctx,
     config,
     apiClient: api,
-    logger: { error: vi.fn() } as any,
     rootCommand: 'mcinfo1',
     prefix: 'mcinfo1',
     label: '测试服',

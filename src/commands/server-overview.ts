@@ -6,6 +6,7 @@ import type { OnlineStatusResult } from '../types'
 import { renderTypstTemplate } from '../typst'
 import { sendOnlineStatus } from '../qq'
 import type { CommandRegistrationContext } from './types'
+import { formatErrorForLog, logInfo } from '../logger'
 
 function createTemplatePayload(config: Config, result: OnlineStatusResult) {
   const overview = result.overview
@@ -39,16 +40,14 @@ async function renderOnlineStatus(
   ctx: Context,
   config: Config,
   result: OnlineStatusResult,
-  logger: any,
 ): Promise<Buffer> {
-  return renderTypstTemplate(ctx, config, logger, 'onlineStatus', createTemplatePayload(config, result))
+  return renderTypstTemplate(ctx, config, 'onlineStatus', createTemplatePayload(config, result))
 }
 
 export function registerServerOverviewCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
 }: CommandRegistrationContext) {
   ctx.command(primaryCommand(prefix, COMMAND_NAMES.serverOverview), commandDescription(COMMAND_NAMES.serverOverview, '查询服务器在线状态'))
@@ -75,11 +74,11 @@ export function registerServerOverviewCommand({
 
       let image: Buffer | null = null
       try {
-        image = await renderOnlineStatus(ctx, config, result, logger)
+        image = await renderOnlineStatus(ctx, config, result)
       } catch (error) {
-        logger.warn(`查在线 Typst 渲染失败: ${error}`)
+        logInfo(ctx, config, '[WARN] 查在线 Typst 渲染失败', formatErrorForLog(error))
       }
-      return sendOnlineStatus(ctx, session, config, result, image, logger)
+      return sendOnlineStatus(ctx, session, config, result, image)
     })
 }
 

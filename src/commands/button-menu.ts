@@ -1,11 +1,11 @@
 import { COMMAND_NAMES, aliasCommand, commandDescription, primaryCommand } from './command-names'
 import type { CommandRegistrationContext } from './types'
 import { buildQQButtonMenu, BUTTON_MENU_PAGE_COUNT, sendQQMarkdown } from '../qq'
+import { formatErrorForLog, logInfo } from '../logger'
 
 export function registerButtonMenuCommand({
   ctx,
   config,
-  logger,
   prefix,
 }: CommandRegistrationContext) {
   const buttonMenuCommand = primaryCommand(prefix, COMMAND_NAMES.buttonMenu)
@@ -16,8 +16,7 @@ export function registerButtonMenuCommand({
     .alias(aliasCommand(prefix, COMMAND_NAMES.buttonMenu))
     .action(async ({ session }, requestedPage) => {
       if (session.platform !== 'qq') return '❌ 按钮菜单仅支持 QQ 平台'
-      if (!config.qqMarkdownEnabled) return '❌ QQ Markdown 已关闭，无法发送按钮菜单'
-      if (!config.qqMarkdownKeyboardEnabled) return '❌ QQ Markdown 按钮已关闭，无法发送按钮菜单'
+      if (!config.qqKeyboardEnabled) return '❌ QQ 按钮已关闭，无法发送按钮菜单'
 
       const page = requestedPage === undefined ? 1 : Number(requestedPage)
       if (!Number.isInteger(page)) return `❌ 页码只能是 1 或 ${BUTTON_MENU_PAGE_COUNT}`
@@ -25,9 +24,11 @@ export function registerButtonMenuCommand({
       if (page > BUTTON_MENU_PAGE_COUNT) return '❌ 已经是最后一页了'
 
       const menu = buildQQButtonMenu(config, page as 1 | 2)
-      if (!menu.keyboard) return '❌ QQ Markdown 按钮已关闭，无法发送按钮菜单'
+      if (!menu.keyboard) return '❌ QQ 按钮已关闭，无法发送按钮菜单'
       try {
         await sendQQMarkdown(
+          ctx,
+          config,
           session,
           menu.markdown,
           menu.fallbackContent,
@@ -35,7 +36,7 @@ export function registerButtonMenuCommand({
         )
         return ''
       } catch (error) {
-        logger.error(`发送 QQ 按钮菜单失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 发送 QQ 按钮菜单失败', formatErrorForLog(error))
         return `❌ 发送按钮菜单失败：${error instanceof Error ? error.message : String(error)}`
       }
     })

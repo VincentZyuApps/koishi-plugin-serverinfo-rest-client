@@ -5,12 +5,12 @@ import { renderTypstTemplate } from '../typst'
 import { buildCommandKeyboard, escapeMarkdown, sendRenderedReply } from '../qq'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
 import type { CommandRegistrationContext } from './types'
+import { formatErrorForLog, logInfo } from '../logger'
 
 export function registerPlayerStatisticsCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
 }: CommandRegistrationContext) {
   const playerStatsCommand = primaryCommand(prefix, COMMAND_NAMES.playerStatistics)
@@ -38,7 +38,7 @@ export function registerPlayerStatisticsCommand({
             userId: session.userId,
           }, true)
         }
-        const image = await renderTypstTemplate(ctx, config, logger, 'playerStats', {
+        const image = await renderTypstTemplate(ctx, config, 'playerStats', {
           label: config.serverLabel,
           name: data.name,
           xuid: data.xuid,
@@ -62,7 +62,7 @@ export function registerPlayerStatisticsCommand({
             },
             { label: '查看在线', command: onlineCommand },
           ]),
-        }, logger)
+        })
       } catch (error) {
         if (!explicitPlayerName && error instanceof ApiRequestError) {
           if (error.code === 'binding_not_found') {
@@ -74,7 +74,7 @@ export function registerPlayerStatisticsCommand({
             return `你绑定的玩家 ${playerName} 暂无历史数据。\n该玩家至少需要进入服务器一次后才能产生统计记录。`
           }
         }
-        logger.error(`查询玩家数据统计失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 查询玩家数据统计失败', formatErrorForLog(error))
         return `查询玩家数据统计失败：${error instanceof Error ? error.message : String(error)}`
       }
     })

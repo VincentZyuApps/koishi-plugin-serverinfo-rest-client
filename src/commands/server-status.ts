@@ -8,6 +8,7 @@ import {
 } from '../typst'
 import type { CommandRegistrationContext } from './types'
 import { CLIENT_VERSION } from '../version'
+import { formatErrorForLog, logInfo } from '../logger'
 
 function formatTextOutput(data: StatusResponse, label: string): string {
   const statusEmoji = data.status === 'online' ? '🟢' : '🔴'
@@ -40,7 +41,6 @@ export function registerServerStatusCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
   label,
 }: CommandRegistrationContext) {
@@ -62,13 +62,12 @@ export function registerServerStatusCommand({
               const pngBuffer = await renderTypstTemplate(
                 ctx,
                 config,
-                logger,
                 'serverStatus',
                 createTemplatePayload(data, label),
               )
               results.push(h.image(pngBuffer, 'image/png'))
             } catch (err) {
-              logger.warn(`Typst 渲染失败: ${err}`)
+              logInfo(ctx, config, '[WARN] 服务器状态 Typst 渲染失败', formatErrorForLog(err))
               const fallback = createTypstFailureOutput(err, config, modes, formatTextOutput(data, label))
               if (fallback) results.push(fallback)
             }
@@ -80,7 +79,7 @@ export function registerServerStatusCommand({
         }
         return results
       } catch (error) {
-        logger.error(`获取服务器状态失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 获取服务器状态失败', formatErrorForLog(error))
         return `❌ 获取服务器状态失败: ${error.message}`
       }
     })

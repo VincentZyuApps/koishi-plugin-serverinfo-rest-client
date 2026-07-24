@@ -1,4 +1,6 @@
+import type { Context } from 'koishi'
 import type { Config, TokenSendMode } from '../config'
+import { logInfo, stringifyForLog } from '../logger'
 
 export interface ApiClient {
   get<T>(endpoint: string, params?: Record<string, string>): Promise<T>
@@ -24,7 +26,7 @@ export class ApiRequestError extends Error {
   }
 }
 
-export function createApiClient(config: Config, logger: any): ApiClient {
+export function createApiClient(ctx: Context, config: Config): ApiClient {
   const baseUrl = config.serverUrl.replace(/\/+$/, '')
   const apiPrefix = config.apiPrefix.startsWith('/') ? config.apiPrefix : `/${config.apiPrefix}`
   const apiBase = `${baseUrl}${apiPrefix.replace(/\/+$/, '')}`
@@ -64,7 +66,9 @@ export function createApiClient(config: Config, logger: any): ApiClient {
     const queryParams = { ...(params ?? {}) }
     if (authToken && includesParam(sendMode)) queryParams.token = authToken
     const url = buildUrl(`${apiBase}${endpoint}`, queryParams)
-    logger.debug(`[API] ${method} ${redactUrl(url)}`)
+    if (config.verboseConsoleLog) {
+      logInfo(ctx, config, `[API] ${method} 请求`, `URL: ${redactUrl(url)}`)
+    }
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), config.timeout)
@@ -102,7 +106,14 @@ export function createApiClient(config: Config, logger: any): ApiClient {
         )
       }
 
-      logger.debug('[API] Response:', JSON.stringify(data).substring(0, 200))
+      if (config.verboseConsoleLog) {
+        logInfo(
+          ctx,
+          config,
+          `[API] ${method} 响应成功`,
+          `URL: ${redactUrl(url)}\n状态码: ${response.status}\n响应: ${stringifyForLog(data).substring(0, 1000)}`,
+        )
+      }
       return data as T
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {

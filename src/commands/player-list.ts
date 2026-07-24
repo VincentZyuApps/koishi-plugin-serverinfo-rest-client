@@ -7,6 +7,7 @@ import {
   createTypstFailureOutput,
 } from '../typst'
 import type { CommandRegistrationContext } from './types'
+import { formatErrorForLog, logInfo } from '../logger'
 
 function formatTextOutput(data: PlayersResponse, label: string): string {
   if (!data.players.length) return `${label} ${COMMAND_NAMES.playerList.emoji} 玩家列表\n\n当前没有玩家在线`
@@ -17,7 +18,6 @@ export function registerPlayerListCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
   label,
 }: CommandRegistrationContext) {
@@ -34,7 +34,7 @@ export function registerPlayerListCommand({
             results.push(h.text(formatTextOutput(data, label)))
           } else {
             try {
-              const image = await renderTypstTemplate(ctx, config, logger, 'playersList', {
+              const image = await renderTypstTemplate(ctx, config, 'playersList', {
                 label,
                 count: data.count,
                 players: data.players.map(player => ({ name: player.name })),
@@ -49,7 +49,7 @@ export function registerPlayerListCommand({
         if (config.quoteCommandReplies && session.messageId) return h('', [h.quote(session.messageId), ...results])
         return results
       } catch (error) {
-        logger.error(`获取玩家列表失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 获取玩家列表失败', formatErrorForLog(error))
         return `❌ 获取玩家列表失败: ${error instanceof Error ? error.message : String(error)}`
       }
     })

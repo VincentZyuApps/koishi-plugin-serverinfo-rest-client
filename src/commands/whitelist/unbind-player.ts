@@ -1,13 +1,13 @@
 import type { WhitelistBindingResponse } from '../../api/types'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from '../command-names'
 import type { CommandRegistrationContext } from '../types'
+import { formatErrorForLog, logInfo } from '../../logger'
 import { formatAllowlistResult, getSelfId, quoteIfNeeded } from './shared'
 
 export function registerUnbindPlayerCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
 }: CommandRegistrationContext) {
   const unbindPlayerCommand = primaryCommand(prefix, COMMAND_NAMES.unbindPlayer)
@@ -30,7 +30,7 @@ export function registerUnbindPlayerCommand({
         }, true)
         return quoteIfNeeded(session, config, `已解除与 ${data.binding.playerName} 的玩家绑定${formatAllowlistResult(data)}`)
       } catch (error) {
-        logger.error(`解绑玩家失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 解绑玩家失败', formatErrorForLog(error))
         return `解绑玩家失败：${error instanceof Error ? error.message : String(error)}`
       }
     })

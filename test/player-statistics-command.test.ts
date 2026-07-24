@@ -35,6 +35,7 @@ const playerStats = {
 function createHarness(configOverrides: Record<string, unknown> = {}, prefix = 'mcinfo1') {
   let action: Function | undefined
   const ctx = {
+    logger: { info: vi.fn() },
     command: vi.fn((declaration: string) => {
       expect(declaration).toBe(`${prefix ? `${prefix}.` : ''}玩家数据统计 [playerName:text]`)
       const chain: any = {
@@ -53,17 +54,15 @@ function createHarness(configOverrides: Record<string, unknown> = {}, prefix = '
     serverLabel: '测试服',
     ...configOverrides,
   } as any
-  const logger = { error: vi.fn() }
   registerPlayerStatisticsCommand({
     ctx,
     config,
     apiClient: api,
-    logger: logger as any,
     rootCommand: prefix || 'mcinfo1',
     prefix,
     label: config.serverLabel,
   })
-  return { action: action!, api, logger }
+  return { action: action!, api }
 }
 
 const session = {

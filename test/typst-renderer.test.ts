@@ -37,8 +37,7 @@ describe('TypstRenderer', () => {
 
   it('renders a non-empty PNG through Typst and Resvg', async () => {
     const renderer = new TypstRenderer(
-      { baseDir: process.cwd() } as any,
-      { info: vi.fn(), warn: vi.fn() },
+      { baseDir: process.cwd(), logger: { info: vi.fn() } } as any,
       { typstFontPath: '', typstEmojiFontPath: '' } as any,
     )
     await renderer.init()
@@ -52,8 +51,7 @@ describe('TypstRenderer', () => {
 
   it('compiles every bundled runtime template with structured JSON input', async () => {
     const baseDir = await mkdtemp(path.join(process.env.TEMP || process.cwd(), 'll-serverinfo-template-test-'))
-    const ctx = { baseDir } as any
-    const logger = { info: vi.fn(), warn: vi.fn() }
+    const ctx = { baseDir, logger: { info: vi.fn() } } as any
     const payloads: Record<keyof typeof TEMPLATE_ENTRIES, Record<string, unknown>> = {
       healthStatus: {
         label: '测试服 [安全文本]', status_emoji: '✅', status_text: '健康',
@@ -95,7 +93,7 @@ describe('TypstRenderer', () => {
 
     try {
       await ensureTemplateAssets(ctx, templateConfig)
-      const renderer = new TypstRenderer(ctx, logger, templateConfig)
+      const renderer = new TypstRenderer(ctx, templateConfig)
       await renderer.init()
       for (const template of Object.keys(TEMPLATE_ENTRIES) as Array<keyof typeof TEMPLATE_ENTRIES>) {
         let png: Buffer
@@ -125,7 +123,7 @@ describe('TypstRenderer', () => {
         expect(png.subarray(0, 8).toString('hex'), `${template} conditional variant`).toBe('89504e470d0a1a0a')
       }
 
-      const transparentRenderer = new TypstRenderer(ctx, logger, {
+      const transparentRenderer = new TypstRenderer(ctx, {
         ...templateConfig,
         typstTransparentBackground: true,
       })

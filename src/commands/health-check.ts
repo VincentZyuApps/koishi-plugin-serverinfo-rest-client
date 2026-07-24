@@ -8,6 +8,7 @@ import {
   createTypstFailureOutput,
 } from '../typst'
 import type { CommandRegistrationContext } from './types'
+import { formatErrorForLog, logInfo } from '../logger'
 
 function formatTextOutput(data: HealthResponse, label: string): string {
   return `${label} ${COMMAND_NAMES.healthCheck.emoji} 健康检查
@@ -50,7 +51,6 @@ export function registerHealthCheckCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
   label,
 }: CommandRegistrationContext) {
@@ -72,13 +72,12 @@ export function registerHealthCheckCommand({
               const pngBuffer = await renderTypstTemplate(
                 ctx,
                 config,
-                logger,
                 'healthStatus',
                 createTemplatePayload(data, label),
               )
               results.push(h.image(pngBuffer, 'image/png'))
             } catch (err) {
-              logger.warn(`Typst 渲染失败: ${err}`)
+              logInfo(ctx, config, '[WARN] 健康检查 Typst 渲染失败', formatErrorForLog(err))
               const fallback = createTypstFailureOutput(err, config, modes, formatTextOutput(data, label))
               if (fallback) results.push(fallback)
             }
@@ -90,7 +89,7 @@ export function registerHealthCheckCommand({
         }
         return results
       } catch (error) {
-        logger.error(`健康检查失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 健康检查失败', formatErrorForLog(error))
         return `❌ 健康检查失败: ${error.message}`
       }
     })

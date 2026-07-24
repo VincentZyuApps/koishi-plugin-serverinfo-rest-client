@@ -7,6 +7,7 @@ import {
   createTypstFailureOutput,
 } from '../typst'
 import type { CommandRegistrationContext } from './types'
+import { formatErrorForLog, logInfo } from '../logger'
 
 function formatTextOutput(data: PlayersCountResponse, label: string): string {
   return `${label} ${COMMAND_NAMES.playerCount.emoji} 玩家数量
@@ -18,7 +19,6 @@ export function registerPlayerCountCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
   label,
 }: CommandRegistrationContext) {
@@ -37,14 +37,14 @@ export function registerPlayerCountCommand({
             results.push(h.text(formatTextOutput(data, label)))
           } else if (mode === 'typst-image') {
             try {
-              const pngBuffer = await renderTypstTemplate(ctx, config, logger, 'playersCount', {
+              const pngBuffer = await renderTypstTemplate(ctx, config, 'playersCount', {
                 label,
                 count: data.count,
                 generated_at: new Date().toLocaleString('zh-CN'),
               })
               results.push(h.image(pngBuffer, 'image/png'))
             } catch (err) {
-              logger.warn(`Typst 渲染失败: ${err}`)
+              logInfo(ctx, config, '[WARN] 玩家数量 Typst 渲染失败', formatErrorForLog(err))
               const fallback = createTypstFailureOutput(err, config, modes, formatTextOutput(data, label))
               if (fallback) results.push(fallback)
             }
@@ -56,7 +56,7 @@ export function registerPlayerCountCommand({
         }
         return results
       } catch (error) {
-        logger.error(`获取玩家数量失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 获取玩家数量失败', formatErrorForLog(error))
         return `❌ 获取玩家数量失败: ${error.message}`
       }
     })

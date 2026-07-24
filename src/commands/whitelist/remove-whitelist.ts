@@ -2,13 +2,13 @@ import type { WhitelistRemovalResponse } from '../../api/types'
 import { hasPermission } from '../../permissions'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from '../command-names'
 import type { CommandRegistrationContext } from '../types'
+import { formatErrorForLog, logInfo } from '../../logger'
 import { formatAllowlistResult, maskIdentifier, quoteIfNeeded, requesterId } from './shared'
 
 export function registerRemoveWhitelistCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
 }: CommandRegistrationContext) {
   const command = COMMAND_NAMES.removeWhitelist
@@ -36,7 +36,7 @@ export function registerRemoveWhitelistCommand({
           `已移除绑定：${maskIdentifier(data.binding.userId)} ↔ ${data.binding.playerName}${formatAllowlistResult(data)}`,
         )
       } catch (error) {
-        logger.error(`移除白名单失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 移除白名单失败', formatErrorForLog(error))
         return `移除白名单失败：${error instanceof Error ? error.message : String(error)}`
       }
     })

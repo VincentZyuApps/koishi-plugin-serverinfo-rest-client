@@ -7,6 +7,7 @@ import {
   createTypstFailureOutput,
 } from '../typst'
 import type { CommandRegistrationContext } from './types'
+import { formatErrorForLog, logInfo } from '../logger'
 
 function formatTextOutput(data: ServerResponse, label: string): string {
   return `${label} ${COMMAND_NAMES.serverDetails.emoji} 服务器详细信息
@@ -38,7 +39,6 @@ export function registerServerDetailsCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
   label,
 }: CommandRegistrationContext) {
@@ -55,7 +55,7 @@ export function registerServerDetailsCommand({
             results.push(h.text(formatTextOutput(data, label)))
           } else {
             try {
-              const image = await renderTypstTemplate(ctx, config, logger, 'serverInfo', createTemplatePayload(data, label))
+              const image = await renderTypstTemplate(ctx, config, 'serverInfo', createTemplatePayload(data, label))
               results.push(h.image(image, 'image/png'))
             } catch (error) {
               const fallback = createTypstFailureOutput(error, config, modes, formatTextOutput(data, label))
@@ -66,7 +66,7 @@ export function registerServerDetailsCommand({
         if (config.quoteCommandReplies && session.messageId) return h('', [h.quote(session.messageId), ...results])
         return results
       } catch (error) {
-        logger.error(`获取服务器详细信息失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 获取服务器详细信息失败', formatErrorForLog(error))
         return `❌ 获取服务器详细信息失败: ${error instanceof Error ? error.message : String(error)}`
       }
     })

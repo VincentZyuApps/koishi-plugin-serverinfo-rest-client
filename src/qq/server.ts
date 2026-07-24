@@ -4,17 +4,21 @@ import { mkdir, readdir, stat, unlink, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { Context } from 'koishi'
 import type { Config } from '../config'
+import { logInfo } from '../logger'
 
 const CACHE_ROOT = 'll-serverinfo-rest-client'
 const ROUTE_ROOT = '/ll-serverinfo-rest-client/render'
 const registeredRoots = new WeakSet<object>()
 
-export function applyQQImageServer(ctx: Context) {
+export function applyQQImageServer(ctx: Context, config: Config) {
   const root = (ctx as any).root || ctx
   if (registeredRoots.has(root)) return
   registeredRoots.add(root)
 
   root.inject(['server'], (serverCtx: Context) => {
+    if (config.verboseConsoleLog) {
+      logInfo(serverCtx, config, 'QQ Markdown 图片路由已注册', `路由: ${ROUTE_ROOT}/:instance/:name`)
+    }
     serverCtx.server.get(`${ROUTE_ROOT}/:instance/:name`, async (koaCtx) => {
       const instance = String(koaCtx.params.instance || '')
       const filename = path.basename(String(koaCtx.params.name || ''))
@@ -50,9 +54,18 @@ export async function storeQQImage(ctx: Context, config: Config, image: Buffer):
   await cleanupCache(cacheDir, config.qqImageCacheTtlMinutes, config.qqImageCacheMaxFiles)
 
   const filename = `${randomUUID()}.png`
-  await writeFile(path.join(cacheDir, filename), image)
+  const filePath = path.join(cacheDir, filename)
+  await writeFile(filePath, image)
   await cleanupCache(cacheDir, config.qqImageCacheTtlMinutes, config.qqImageCacheMaxFiles)
-  return `${publicBaseUrl}${ROUTE_ROOT}/${instance}/${filename}`
+  const imageUrl = `${publicBaseUrl}${ROUTE_ROOT}/${instance}/${filename}`
+  if (config.verboseConsoleLog) {
+    logInfo(ctx, config, 'QQ Markdown 临时图片已生成', [
+      `缓存文件: ${filePath}`,
+      `图片大小: ${image.length} bytes`,
+      `公网 URL: ${imageUrl}`,
+    ].join('\n'))
+  }
+  return imageUrl
 }
 
 function getCacheRoot(baseDir: string) {

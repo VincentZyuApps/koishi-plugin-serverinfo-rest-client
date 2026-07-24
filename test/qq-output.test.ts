@@ -6,8 +6,9 @@ import { formatQQOnlineMarkdown } from '../src/qq/template'
 import { CLIENT_VERSION } from '../src/version'
 
 describe('QQ Markdown and keyboard', () => {
+  const ctx = { logger: { info: vi.fn() } } as any
   const config = {
-    commandPrefix: 'mcinfo2', useCommandPrefix: true, serverLabel: '二服', qqMarkdownKeyboardEnabled: true,
+    commandPrefix: 'mcinfo2', useCommandPrefix: true, serverLabel: '二服', qqKeyboardEnabled: true,
     qqMarkdownKeyboardJson: '', qqMarkdownMaxPlayers: 2, qqMarkdownEnabled: true,
   } as any
 
@@ -93,7 +94,7 @@ describe('QQ Markdown and keyboard', () => {
       isDirect: true, channelId: 'private-1', messageId: 'message-1', timestamp: Date.now(),
       bot: { internal: { sendPrivateMessage } },
     } as any
-    await sendQQMarkdown(session, '# status', 'status', buildQQKeyboard(config))
+    await sendQQMarkdown(ctx, config, session, '# status', 'status', buildQQKeyboard(config))
     expect(sendPrivateMessage).toHaveBeenCalledWith('private-1', expect.objectContaining({
       msg_type: 2,
       markdown: { content: '# status' },
@@ -104,7 +105,7 @@ describe('QQ Markdown and keyboard', () => {
   it('uses qq:rawmarkdown when the adapter exposes autoStreamText', async () => {
     const send = vi.fn().mockResolvedValue(undefined)
     const session = { bot: { config: { autoStreamText: true } }, send } as any
-    await sendQQMarkdown(session, '# status', 'status', buildQQKeyboard(config))
+    await sendQQMarkdown(ctx, config, session, '# status', 'status', buildQQKeyboard(config))
     expect(send).toHaveBeenCalledOnce()
   })
 })

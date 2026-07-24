@@ -7,7 +7,7 @@ export interface QQConfig {
   qqImageCacheTtlMinutes: number
   qqImageCacheMaxFiles: number
   qqMarkdownMaxPlayers: number
-  qqMarkdownKeyboardEnabled: boolean
+  qqKeyboardEnabled: boolean
   qqMarkdownKeyboardJson: string
 }
 
@@ -15,7 +15,7 @@ export function createQQConfigSchema(): Schema<QQConfig> {
   return Schema.object({
     qqMarkdownEnabled: Schema.boolean()
       .default(true)
-      .description('🤖 QQ 平台使用原生 Markdown，并通过 server 服务提供状态图片'),
+      .description('🤖 QQ 查询结果使用原生 Markdown，并通过 server 服务提供状态图片；不影响按钮菜单指令'),
     publicBaseUrl: Schema.string()
       .default('')
       .role('textarea', { rows: [2, 4] })
@@ -35,9 +35,9 @@ export function createQQConfigSchema(): Schema<QQConfig> {
       .step(1)
       .default(50)
       .description('👥 QQ Markdown 在线玩家名单最大展示数量'),
-    qqMarkdownKeyboardEnabled: Schema.boolean()
+    qqKeyboardEnabled: Schema.boolean()
       .default(true)
-      .description('⌨️ 是否启用 QQ Markdown 按钮；控制查在线附带键盘和按钮菜单指令'),
+      .description('⌨️ 是否启用 QQ 按钮；控制查在线附带键盘和按钮菜单指令'),
     qqMarkdownKeyboardJson: Schema.string()
       .role('textarea', { rows: [8, 16] })
       .default(stringifyKeyboard(DEFAULT_QQ_KEYBOARD))

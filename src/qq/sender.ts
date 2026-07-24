@@ -2,6 +2,7 @@ import { h, type Context, type Session } from 'koishi'
 import type { Config } from '../config'
 import type { OnlineStatusResult } from '../types'
 import type { QQKeyboard } from './types'
+import { formatErrorForLog, logInfo } from '../logger'
 import { buildQQKeyboard } from './keyboard'
 import { fitQQMarkdownImage, getPngDimensions } from './image'
 import { sendQQMarkdown } from './markdown'
@@ -21,7 +22,6 @@ export async function sendRenderedReply(
   session: Session,
   config: Config,
   options: RenderedReplyOptions,
-  logger: any,
 ) {
   if (session.platform === 'qq' && config.qqMarkdownEnabled) {
     try {
@@ -33,10 +33,17 @@ export async function sendRenderedReply(
         dimensions,
         options.markdownBody,
       )
-      await sendQQMarkdown(session, markdown, options.text, options.keyboard ?? null)
+      if (config.verboseConsoleLog) {
+        logInfo(ctx, config, '准备发送 QQ Markdown 图片消息', [
+          `图片 URL: ${imageUrl}`,
+          `Markdown 图片尺寸: ${dimensions.width}x${dimensions.height}`,
+          `键盘: ${options.keyboard?.rows?.length ? '已附带' : '未附带'}`,
+        ].join('\n'))
+      }
+      await sendQQMarkdown(ctx, config, session, markdown, options.text, options.keyboard ?? null)
       return
     } catch (error) {
-      logger.warn(`QQ Markdown 渲染回复失败，回退普通消息: ${error}`)
+      logInfo(ctx, config, '[WARN] QQ Markdown 渲染回复失败，回退普通消息', formatErrorForLog(error))
     }
   }
 
@@ -53,7 +60,6 @@ export async function sendOnlineStatus(
   config: Config,
   result: OnlineStatusResult,
   image: Buffer | null,
-  logger: any,
 ) {
   const text = formatPlainPlayerList(result, config)
   if (session.platform === 'qq' && config.qqMarkdownEnabled && image) {
@@ -61,10 +67,18 @@ export async function sendOnlineStatus(
       const imageUrl = await storeQQImage(ctx, config, image)
       const dimensions = fitQQMarkdownImage(getPngDimensions(image))
       const markdown = formatQQOnlineMarkdown(result, config, imageUrl, dimensions)
-      await sendQQMarkdown(session, markdown, text, buildQQKeyboard(config))
+      const keyboard = buildQQKeyboard(config)
+      if (config.verboseConsoleLog) {
+        logInfo(ctx, config, '准备发送 QQ Markdown 在线状态', [
+          `图片 URL: ${imageUrl}`,
+          `Markdown 图片尺寸: ${dimensions.width}x${dimensions.height}`,
+          `键盘: ${keyboard?.rows?.length ? '已附带' : '未附带'}`,
+        ].join('\n'))
+      }
+      await sendQQMarkdown(ctx, config, session, markdown, text, keyboard)
       return
     } catch (error) {
-      logger.warn(`QQ Markdown 发送失败，回退普通消息: ${error}`)
+      logInfo(ctx, config, '[WARN] QQ Markdown 发送失败，回退普通消息', formatErrorForLog(error))
     }
   }
 

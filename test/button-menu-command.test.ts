@@ -16,6 +16,7 @@ import { registerButtonMenuCommand } from '../src/commands/button-menu'
 function createHarness(configOverrides: Record<string, unknown> = {}) {
   let action: Function | undefined
   const ctx = {
+    logger: { info: vi.fn() },
     command: vi.fn((declaration: string) => {
       expect(declaration).toBe('mcinfo1.按钮菜单 [page:number]')
       const chain: any = {
@@ -33,20 +34,18 @@ function createHarness(configOverrides: Record<string, unknown> = {}) {
     useCommandPrefix: true,
     serverLabel: '测试服',
     qqMarkdownEnabled: true,
-    qqMarkdownKeyboardEnabled: true,
+    qqKeyboardEnabled: true,
     ...configOverrides,
   } as any
-  const logger = { error: vi.fn() }
   registerButtonMenuCommand({
     ctx,
     config,
     apiClient: {} as any,
-    logger: logger as any,
     rootCommand: 'mcinfo1',
     prefix: 'mcinfo1',
     label: '测试服',
   })
-  return { action: action!, config, logger }
+  return { action: action!, config, ctx }
 }
 
 beforeEach(() => {
@@ -68,6 +67,8 @@ describe('button menu command', () => {
 
     expect(mocks.buildQQButtonMenu).toHaveBeenCalledWith(config, 1)
     expect(mocks.sendQQMarkdown).toHaveBeenCalledWith(
+      expect.any(Object),
+      config,
       session,
       '# menu',
       'menu',
@@ -91,13 +92,21 @@ describe('button menu command', () => {
     expect(mocks.buildQQButtonMenu).not.toHaveBeenCalled()
   })
 
-  it('requires an integer page and enabled QQ Markdown buttons', async () => {
+  it('requires an integer page and enabled QQ buttons', async () => {
     const enabled = createHarness()
     await expect(enabled.action({ session: { platform: 'qq' } }, 1.5))
       .resolves.toBe('❌ 页码只能是 1 或 2')
 
-    const disabled = createHarness({ qqMarkdownKeyboardEnabled: false })
+    const disabled = createHarness({ qqKeyboardEnabled: false })
     await expect(disabled.action({ session: { platform: 'qq' } }))
-      .resolves.toBe('❌ QQ Markdown 按钮已关闭，无法发送按钮菜单')
+      .resolves.toBe('❌ QQ 按钮已关闭，无法发送按钮菜单')
+  })
+
+  it('sends the explicit button menu when automatic QQ Markdown output is disabled', async () => {
+    const { action, config } = createHarness({ qqMarkdownEnabled: false })
+
+    await expect(action({ session: { platform: 'qq' } })).resolves.toBe('')
+    expect(mocks.buildQQButtonMenu).toHaveBeenCalledWith(config, 1)
+    expect(mocks.sendQQMarkdown).toHaveBeenCalledOnce()
   })
 })

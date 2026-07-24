@@ -3,12 +3,12 @@ import type { CommandExecutionResponse } from '../api/types'
 import { hasPermission } from '../permissions'
 import { aliasCommand, COMMAND_NAMES, commandDescription, primaryCommand } from './command-names'
 import type { CommandRegistrationContext } from './types'
+import { formatErrorForLog, logInfo } from '../logger'
 
 export function registerExecuteCommand({
   ctx,
   config,
   apiClient,
-  logger,
   prefix,
 }: CommandRegistrationContext) {
   const executeCommand = primaryCommand(prefix, COMMAND_NAMES.executeCommand)
@@ -35,7 +35,7 @@ export function registerExecuteCommand({
         }
         return text
       } catch (error) {
-        logger.error(`执行管理命令失败: ${error}`)
+        logInfo(ctx, config, '[ERROR] 执行管理命令失败', formatErrorForLog(error))
         return `执行命令失败：${error instanceof Error ? error.message : String(error)}`
       }
     })

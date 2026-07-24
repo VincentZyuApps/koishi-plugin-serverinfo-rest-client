@@ -2,6 +2,7 @@ import { Context, h } from 'koishi'
 import { Resvg } from '@resvg/resvg-js'
 import type { NodeAddFontBlobs, NodeCompiler } from '@myriaddreamin/typst-ts-node-compiler'
 import fs from 'node:fs'
+import path from 'node:path'
 import type { Config, OutputMode } from './config'
 import { getTypstFontPaths } from './font'
 import {
@@ -9,6 +10,7 @@ import {
   getTemplateWorkspaceDir,
   type TypstTemplateName,
 } from './template'
+import { formatErrorForLog, logInfo } from './logger'
 
 export interface TypstTheme {
   fontFamily: string
@@ -117,7 +119,6 @@ export class TypstRenderer {
 
   constructor(
     private ctx: Context,
-    private logger: any,
     private cfg: Config,
   ) {
     this.workspaceDir = getTemplateWorkspaceDir(ctx.baseDir, cfg.typstTemplateFolderRelativePath)
@@ -129,7 +130,7 @@ export class TypstRenderer {
       this.initPromise = import(this.typstModuleName).then((typst) => {
         this.typst = typst
         this.initialized = true
-        this.logger.info('Typst 模块加载成功')
+        logInfo(this.ctx, this.cfg, 'Typst 模块加载成功')
       }).catch((error) => {
         this.initPromise = null
         throw error
@@ -150,7 +151,12 @@ export class TypstRenderer {
         try {
           fontArgs.push({ fontBlobs: [fs.readFileSync(fontPath)] })
         } catch (error) {
-          this.logger.warn(`加载字体失败: ${fontPath}, ${error}`)
+          logInfo(
+            this.ctx,
+            this.cfg,
+            `[WARN] Typst 字体加载失败: ${path.basename(fontPath)}`,
+            `路径: ${fontPath}\n${formatErrorForLog(error)}`,
+          )
         }
       }
       this.compiler = this.typst.NodeCompiler.create({
@@ -238,10 +244,10 @@ export class TypstRenderer {
 const renderers = new WeakMap<Context, TypstRenderer>()
 const activeRenderers = new Set<TypstRenderer>()
 
-export async function getTypstRenderer(ctx: Context, cfg: Config, logger: any): Promise<TypstRenderer> {
+export async function getTypstRenderer(ctx: Context, cfg: Config): Promise<TypstRenderer> {
   let renderer = renderers.get(ctx)
   if (!renderer) {
-    renderer = new TypstRenderer(ctx, logger, cfg)
+    renderer = new TypstRenderer(ctx, cfg)
     renderers.set(ctx, renderer)
     activeRenderers.add(renderer)
     ctx.on('dispose', () => {
@@ -256,11 +262,10 @@ export async function getTypstRenderer(ctx: Context, cfg: Config, logger: any): 
 export async function renderTypstTemplate(
   ctx: Context,
   cfg: Config,
-  logger: any,
   template: TypstTemplateName,
   payload: Record<string, unknown>,
 ): Promise<Buffer> {
-  const renderer = await getTypstRenderer(ctx, cfg, logger)
+  const renderer = await getTypstRenderer(ctx, cfg)
   return renderer.toTemplatePng(template, payload, cfg.typstRenderScale)
 }
 

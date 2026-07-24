@@ -17,6 +17,7 @@ function collectRegistrations(commandPrefix: string, useCommandPrefix = true) {
     action?: Function
   }> = []
   const ctx = {
+    logger: { info: vi.fn() },
     command: vi.fn((declaration: string, description: string) => {
       const registration = {
         declaration,
@@ -44,7 +45,6 @@ function collectRegistrations(commandPrefix: string, useCommandPrefix = true) {
     ctx,
     config: { whitelistBindingAuthority: 1 } as any,
     apiClient: {} as any,
-    logger: {} as any,
     rootCommand: scope.rootCommand,
     prefix: scope.featurePrefix,
     label: '测试服务器',

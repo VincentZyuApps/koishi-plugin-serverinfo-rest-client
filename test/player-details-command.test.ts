@@ -142,6 +142,7 @@ describe('player online details', () => {
   it('queries GET /player for the existing player online details command', async () => {
     let action: Function | undefined
     const ctx = {
+      logger: { info: vi.fn() },
       command: vi.fn(() => {
         const chain: any = {
           alias: vi.fn(() => chain),
@@ -159,7 +160,6 @@ describe('player online details', () => {
       ctx,
       config: createConfig(),
       apiClient: api,
-      logger: { error: vi.fn() } as any,
       rootCommand: 'mcinfo1',
       prefix: 'mcinfo1',
       label: '测试服',
